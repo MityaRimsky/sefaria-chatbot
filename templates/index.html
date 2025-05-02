@@ -1438,7 +1438,7 @@
             }
             
             // Функция для повторной генерации ответа
-            async function regenerateResponse() {
+            async function regenerateResponse(messageType) {
                 try {
                     // Получаем последнее сообщение пользователя
                     const lastUserMessage = await getLastUserMessage();
@@ -1448,16 +1448,18 @@
                         return;
                     }
                     
-                    // Если последнее сообщение в чате от бота, удаляем его
-                    const lastMessageElement = getLastMessageElement();
-                    if (lastMessageElement && !lastMessageElement.classList.contains('user')) {
-                        lastMessageElement.remove();
-                    }
-                    
+        // Не удаляем последнее сообщение бота, чтобы сохранить историю
+        
                     // Удаляем иконки действий
                     const actionsContainer = document.querySelector('.message-actions');
                     if (actionsContainer) {
                         actionsContainer.remove();
+                    }
+                    
+                    // Если кнопка была нажата под сообщением бота, сначала добавляем последнее сообщение пользователя
+                    if (messageType === 'bot') {
+                        // Добавляем последнее сообщение пользователя в чат
+                        addMessageToUI(lastUserMessage.content, true);
                     }
                     
                     // Отправляем запрос на сервер
@@ -1549,7 +1551,7 @@
                     <button class="action-icon copy-icon" title="${window.i18nModule.t('copy.button', 'Копировать сообщение')}">
                         <i class="fas fa-clone"></i>
                     </button>
-                    <button class="action-icon regenerate-icon" title="${window.i18nModule.t('regenerate.button', 'Сгенерировать ответ заново')}">
+                    <button class="action-icon regenerate-icon" data-message-type="${isUser ? 'user' : 'bot'}" title="${window.i18nModule.t('regenerate.button', 'Сгенерировать ответ заново')}">
                         <i class="fas fa-sync"></i>
                     </button>
                 `;
@@ -1559,7 +1561,9 @@
                 
                 // Добавляем обработчики событий
                 actionsContainer.querySelector('.copy-icon').addEventListener('click', copyLastMessage);
-                actionsContainer.querySelector('.regenerate-icon').addEventListener('click', regenerateResponse);
+                actionsContainer.querySelector('.regenerate-icon').addEventListener('click', function() {
+                    regenerateResponse(this.getAttribute('data-message-type'));
+                });
             }
             
             // Функция для добавления сообщения в UI (без сохранения в БД)

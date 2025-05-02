@@ -83,6 +83,13 @@
     "english": "אנגלית",
     "logout": "התנתק מהחשבון"
   },
+  "copy": {
+    "notification": "הועתק ללוח",
+    "button": "העתק הודעה"
+  },
+  "regenerate": {
+    "button": "צור תשובה מחדש"
+  },
   "privacy": {
     "title": "מדיניות פרטיות",
     "back": "חזרה",

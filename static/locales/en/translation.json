@@ -83,6 +83,13 @@
     "english": "English",
     "logout": "Log out"
   },
+  "copy": {
+    "notification": "Copied to clipboard",
+    "button": "Copy message"
+  },
+  "regenerate": {
+    "button": "Regenerate response"
+  },
   "privacy": {
     "title": "Privacy Policy",
     "back": "Back",
