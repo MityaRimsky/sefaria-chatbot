@@ -840,6 +840,56 @@
             filter: none !important;
         }
         
+        /* Стили для иконок действий с сообщениями */
+        .message-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+            margin-bottom: 16px;
+        }
+        
+        .message-actions.left-aligned {
+            justify-content: flex-start;
+            padding-left: 40px; /* Отступ для выравнивания с сообщением бота */
+        }
+        
+        .message-actions.right-aligned {
+            justify-content: flex-end;
+            padding-right: 16px; /* Отступ для выравнивания с сообщением пользователя */
+        }
+        
+        .action-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--sidebar-hover);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: background-color 0.2s, color 0.2s;
+        }
+        
+        .action-icon:hover {
+            background-color: rgba(0, 127, 231, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .copy-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            z-index: 10000;
+        }
+        
         /* Стили для скелетон-анимации при загрузке переводов */
         @keyframes skeleton-loading {
             0% {
@@ -1303,20 +1353,213 @@
                         
                         // Печатаем сообщение с эффектом
                         typeMessage(messageContent, formattedMessage, 5).then(() => {
-                            // Если печатание не было отменено, превращаем индикатор в обычное сообщение
-                            if (!typingCancelled) {
-                                // Удаляем ID индикатора, чтобы превратить его в обычное сообщение
-                                typingIndicator.removeAttribute('id');
-                                typingIndicator.classList.remove('typing-indicator');
-                                
-                                // Сообщаем, что трансформация завершена
-                                resolve(true);
-                            } else {
-                                resolve(false);
-                            }
+                                // Если печатание не было отменено, превращаем индикатор в обычное сообщение
+                                if (!typingCancelled) {
+                                    // Удаляем ID индикатора, чтобы превратить его в обычное сообщение
+                                    typingIndicator.removeAttribute('id');
+                                    typingIndicator.classList.remove('typing-indicator');
+                                    
+                                    // Добавляем иконки действий
+                                    addActionIcons();
+                                    
+                                    // Сообщаем, что трансформация завершена
+                                    resolve(true);
+                                } else {
+                                    resolve(false);
+                                }
                         });
                     }, 300); // Время анимации исчезновения точек
                 });
+            }
+            
+            // Функция для получения последнего элемента сообщения в чате
+            function getLastMessageElement() {
+                const messageRows = chatContainer.querySelectorAll('.message-row');
+                return messageRows.length > 0 ? messageRows[messageRows.length - 1] : null;
+            }
+            
+            // Функция для получения последнего сообщения пользователя из Supabase
+            async function getLastUserMessage() {
+                if (!currentSessionId) return null;
+                
+                try {
+                    // Получаем все сообщения текущей сессии
+                    const messages = await window.chatService.getChatMessages(currentSessionId);
+                    
+                    // Фильтруем сообщения пользователя и берем последнее
+                    const userMessages = messages.filter(msg => msg.sender === 'user');
+                    return userMessages.length > 0 ? userMessages[userMessages.length - 1] : null;
+                } catch (error) {
+                    console.error('Ошибка при получении последнего сообщения пользователя:', error);
+                    return null;
+                }
+            }
+            
+            // Функция для копирования последнего сообщения
+            function copyLastMessage() {
+                const lastMessage = getLastMessageElement();
+                if (!lastMessage) return;
+                
+                const messageBubble = lastMessage.querySelector('.message-bubble');
+                if (!messageBubble) return;
+                
+                // Получаем текст сообщения (без HTML-тегов)
+                const textToCopy = messageBubble.innerText;
+                
+                // Копируем в буфер обмена
+                navigator.clipboard.writeText(textToCopy)
+                    .then(() => {
+                        // Показываем уведомление об успешном копировании
+                        showCopyNotification();
+                    })
+                    .catch(err => {
+                        console.error('Ошибка при копировании: ', err);
+                    });
+            }
+            
+            // Функция для отображения уведомления о копировании
+            function showCopyNotification() {
+                // Удаляем существующее уведомление, если оно есть
+                const existingNotification = document.querySelector('.copy-notification');
+                if (existingNotification) {
+                    existingNotification.remove();
+                }
+                
+                // Создаем временное уведомление
+                const notification = document.createElement('div');
+                notification.className = 'copy-notification';
+                notification.textContent = window.i18nModule.t('copy.notification', 'Скопировано в буфер обмена');
+                document.body.appendChild(notification);
+                
+                // Удаляем уведомление через 2 секунды
+                setTimeout(() => {
+                    notification.remove();
+                }, 2000);
+            }
+            
+            // Функция для повторной генерации ответа
+            async function regenerateResponse() {
+                try {
+                    // Получаем последнее сообщение пользователя
+                    const lastUserMessage = await getLastUserMessage();
+                    
+                    if (!lastUserMessage) {
+                        console.error('Не найдено сообщений пользователя');
+                        return;
+                    }
+                    
+                    // Если последнее сообщение в чате от бота, удаляем его
+                    const lastMessageElement = getLastMessageElement();
+                    if (lastMessageElement && !lastMessageElement.classList.contains('user')) {
+                        lastMessageElement.remove();
+                    }
+                    
+                    // Удаляем иконки действий
+                    const actionsContainer = document.querySelector('.message-actions');
+                    if (actionsContainer) {
+                        actionsContainer.remove();
+                    }
+                    
+                    // Отправляем запрос на сервер
+                    toggleLoadingState(true);
+                    errorMessage.style.display = 'none';
+                    
+                    // Создаем новый AbortController
+                    controller = new AbortController();
+                    
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ query: lastUserMessage.content }),
+                        signal: controller.signal
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        // Добавляем ответ бота в чат с эффектом печатания и трансформацией индикатора
+                        await addMessageToUI(data.response, false, true, true);
+                        
+                        // Сохраняем сообщение в БД
+                        if (currentSessionId) {
+                            try {
+                                await window.chatService.addChatMessage(
+                                    currentSessionId, 
+                                    data.response, 
+                                    false
+                                );
+                            } catch (error) {
+                                console.error('Ошибка при сохранении сообщения бота:', error);
+                            }
+                        }
+                        
+                        // Обновляем список чатов (название может измениться)
+                        const sessions = await window.chatService.getChatSessions();
+                        updateChatList(sessions);
+                        
+                        // Дополнительная прокрутка вниз после добавления ответа бота
+                        scrollChatToBottom();
+                    } else {
+                        // Показываем сообщение об ошибке
+                        errorMessage.textContent = data.error || 'Произошла ошибка при обработке запроса';
+                        errorMessage.style.display = 'block';
+                    }
+                } catch (error) {
+                    // Проверяем, была ли операция прервана намеренно
+                    if (error.name !== 'AbortError') {
+                        // Показываем сообщение об ошибке
+                        errorMessage.textContent = 'Не удалось подключиться к серверу';
+                        errorMessage.style.display = 'block';
+                    }
+                } finally {
+                    // Сбрасываем контроллер и индикатор загрузки
+                    controller = null;
+                    toggleLoadingState(false);
+                }
+            }
+            
+            // Функция для добавления иконок действий к последнему сообщению
+            function addActionIcons() {
+                // Удаляем существующие иконки действий, если они есть
+                const existingIcons = document.querySelector('.message-actions');
+                if (existingIcons) {
+                    existingIcons.remove();
+                }
+                
+                const lastMessage = getLastMessageElement();
+                if (!lastMessage) return;
+                
+                const isUser = lastMessage.classList.contains('user');
+                
+                // Создаем контейнер для иконок
+                const actionsContainer = document.createElement('div');
+                actionsContainer.className = 'message-actions';
+                
+                // Позиционируем контейнер в зависимости от типа сообщения
+                if (isUser) {
+                    actionsContainer.classList.add('right-aligned');
+                } else {
+                    actionsContainer.classList.add('left-aligned');
+                }
+                
+                // Добавляем иконки
+                actionsContainer.innerHTML = `
+                    <button class="action-icon copy-icon" title="${window.i18nModule.t('copy.button', 'Копировать сообщение')}">
+                        <i class="fas fa-clone"></i>
+                    </button>
+                    <button class="action-icon regenerate-icon" title="${window.i18nModule.t('regenerate.button', 'Сгенерировать ответ заново')}">
+                        <i class="fas fa-sync"></i>
+                    </button>
+                `;
+                
+                // Добавляем контейнер после последнего сообщения
+                lastMessage.insertAdjacentElement('afterend', actionsContainer);
+                
+                // Добавляем обработчики событий
+                actionsContainer.querySelector('.copy-icon').addEventListener('click', copyLastMessage);
+                actionsContainer.querySelector('.regenerate-icon').addEventListener('click', regenerateResponse);
             }
             
             // Функция для добавления сообщения в UI (без сохранения в БД)
@@ -1389,6 +1632,9 @@
                 
                 // Прокрутка вниз после добавления сообщения
                 scrollChatToBottom();
+                
+                // Добавляем иконки действий к последнему сообщению
+                addActionIcons();
             }
             
             // Функция для добавления сообщения в чат и сохранения в БД
@@ -1676,6 +1922,9 @@
                     
                     // Скрываем оригинальный индикатор
                     typingIndicator.style.display = 'none';
+                    
+                    // Добавляем иконки действий к последнему сообщению
+                    addActionIcons();
                 }
             }
             
