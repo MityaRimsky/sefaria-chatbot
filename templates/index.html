@@ -1419,6 +1419,12 @@
             
             // Функция для отображения уведомления о копировании
             function showCopyNotification() {
+                // Проверяем, является ли устройство мобильным
+                if (window.matchMedia("(max-width: 768px)").matches) {
+                    // На мобильных устройствах не показываем уведомление
+                    return;
+                }
+                
                 // Удаляем существующее уведомление, если оно есть
                 const existingNotification = document.querySelector('.copy-notification');
                 if (existingNotification) {
