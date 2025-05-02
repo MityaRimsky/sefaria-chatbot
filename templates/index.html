@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, height=device-height">
     <title>SHUVA</title>
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@200;300;400;500;600;700&display=swap">
@@ -243,7 +243,7 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            height: 100dvh;
+            height: 100vh;
             position: relative;
             background-color: #fff;
             overflow-y: auto;
@@ -261,7 +261,7 @@
             max-width: 800px;
             margin: 0 auto;
             width: 100%;
-            padding-bottom: 56px;
+            padding-bottom: 120px;
         }
         
         /* Добавляем плавную прокрутку для основного контента */
@@ -502,13 +502,38 @@
             flex-direction: column;
             align-items: center;
             background-color: var(--bg-color);
-            position: sticky;
+            position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             z-index: 9999;
+            transform: translateZ(0); /* Активирует аппаратное ускорение */
+            will-change: transform; /* Подсказка браузеру о будущих изменениях */
+            -webkit-overflow-scrolling: touch; /* Улучшает прокрутку на iOS */
         }
         
+        /* Стили для состояния с открытой клавиатурой */
+        body.keyboard-open .input-container {
+            position: fixed;
+            bottom: 0;
+        }
+        
+        /* Специфичные стили для iOS Safari */
+        @supports (-webkit-touch-callout: none) {
+            body.keyboard-open {
+                /* Предотвращает прокрутку на iOS */
+                height: -webkit-fill-available;
+                overflow: hidden;
+            }
+        }
+        
+        /* Медиа-запрос для десктопа */
+        @media (min-width: 769px) {
+            .input-container {
+                left: 260px; /* Ширина боковой панели */
+                width: calc(100% - 260px); /* Вычитаем ширину боковой панели */
+            }
+        }
         
         .input-wrapper {
             max-width: 800px;
@@ -1146,6 +1171,36 @@
             messageInput.addEventListener('input', function() {
                 this.style.height = 'auto';
                 this.style.height = (this.scrollHeight) + 'px';
+            });
+            
+            // Сохраняем исходную высоту viewport для работы с клавиатурой
+            let viewportHeight = window.innerHeight;
+            
+            // Обработчик фокуса на поле ввода
+            messageInput.addEventListener('focus', function() {
+                // Добавляем класс для фиксации контейнера ввода
+                document.body.classList.add('keyboard-open');
+                
+                // Небольшая задержка для iOS
+                setTimeout(function() {
+                    // Прокручиваем до поля ввода
+                    window.scrollTo(0, document.body.scrollHeight);
+                }, 300);
+            });
+            
+            // Обработчик потери фокуса
+            messageInput.addEventListener('blur', function() {
+                document.body.classList.remove('keyboard-open');
+            });
+            
+            // Предотвращаем изменение размера viewport при появлении клавиатуры
+            window.addEventListener('resize', function() {
+                if (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT') {
+                    document.body.style.height = viewportHeight + 'px';
+                } else {
+                    viewportHeight = window.innerHeight;
+                    document.body.style.height = '';
+                }
             });
             
             // Функция для прокрутки чата вниз
