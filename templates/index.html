@@ -503,24 +503,14 @@
             flex-direction: column;
             align-items: center;
             background-color: var(--bg-color);
-            position: fixed;
+            position: sticky;
             bottom: 0;
             left: 0;
             right: 0;
             z-index: 9999;
-            transform: translateZ(0); /* Активирует аппаратное ускорение */
-            will-change: transform; /* Подсказка браузеру о будущих изменениях */
-            transition: none; /* Отключаем анимацию для мгновенного перемещения */
         }
         
-        /* Медиа-запрос для десктопа */
-        @media (min-width: 769px) {
-            .input-container {
-                left: 260px; /* Ширина боковой панели */
-                width: calc(100% - 260px); /* Вычитаем ширину боковой панели */
-            }
-        }
-        
+
         .input-wrapper {
             max-width: 800px;
             width: 100%;
