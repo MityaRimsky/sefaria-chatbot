@@ -147,6 +147,11 @@ def privacy():
     # Страница политики конфиденциальности
     return render_template('privacy.html')
 
+@app.route('/about')
+def about():
+    # Страница о проекте
+    return render_template('about.html')
+
 @app.route('/api/chat', methods=['POST'])
 @auth_required
 def chat():
