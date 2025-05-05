@@ -664,12 +664,27 @@
             overflow: hidden;
         }
         
+        .sidebar-user .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+        
         .sidebar-user .user-info span {
             display: block;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            word-break: break-word;
             font-size: 0.9rem;
+            max-width: 160px; /* Ограничиваем ширину для длинных email */
+            flex-grow: 1; /* Растягиваем текст на всё свободное пространство */
+            margin-right: 10px; /* Фиксированный отступ между текстом и иконкой */
+        }
+        
+        .sidebar-user .user-info i {
+            color: var(--text-light);
+            font-size: 1rem;
+            margin-left: auto; /* Прижимаем иконку к правому краю */
         }
         
         /* Стили для мобильного блока пользователя */
@@ -963,6 +978,7 @@
             </div>
             <div class="user-info">
                 <span id="sidebar-email">Войти</span>
+                <i class="fas fa-chevron-right"></i>
             </div>
         </div>
     </div>
@@ -1002,6 +1018,7 @@
             </div>
             <div class="user-info">
                 <span id="mobile-sidebar-email">Войти</span>
+                <i class="fas fa-chevron-right"></i>
             </div>
         </div>
     </div>
