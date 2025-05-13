@@ -787,36 +787,23 @@
         
         /* iOS-специфичные стили */
         @supports (-webkit-touch-callout: none) {
-            /* Фиксируем хедер вверху (как было раньше) */
-            body.ios-device .mobile-nav {
-                position: sticky !important;
-                top: 0 !important;
-                z-index: 100 !important;
-                background-color: var(--sidebar-bg) !important;
+            /* Убираем голубую подсветку на iOS */
+            .mobile-btn,
+            .send-button,
+            .chat-item,
+            .sidebar-user,
+            .new-chat-btn {
+                -webkit-tap-highlight-color: transparent;
             }
             
-            /* Фиксируем инпут внизу */
-            body.ios-device .input-container {
-                position: sticky !important;
-                bottom: 0 !important;
-                z-index: 100 !important;
-                background-color: var(--bg-color) !important;
-                padding-bottom: env(safe-area-inset-bottom, 10px) !important;
-            }
-            
-            /* Предотвращаем скрытие инпута при открытой клавиатуре */
-            body.ios-keyboard-open .input-container {
-                position: fixed !important;
-                bottom: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
-            }
-            
-            /* Приветственное сообщение */
-            body.ios-device .welcome-message {
-                min-height: auto !important;
-                height: auto !important;
-                padding-bottom: 90px !important;
+            /* Опционально: добавляет анимацию для :active */
+            .mobile-btn:active,
+            .send-button:active,
+            .chat-item:active,
+            .sidebar-user:active,
+            .new-chat-btn:active {
+                background-color: rgba(0, 127, 231, 0.1) !important;
+                transition: background-color 0.1s;
             }
         }
         
@@ -1223,11 +1210,32 @@
                 
                 // Отслеживаем изменение размера окна (открытие/закрытие клавиатуры)
                 window.addEventListener('resize', function() {
+                    const inputContainer = document.querySelector('.input-container');
+                    
                     // Если текущая высота меньше исходной, клавиатура открыта
                     if (window.innerHeight < originalWindowHeight * 0.75) {
-                        document.body.classList.add('ios-keyboard-open');
+                        // Фиксируем инпут над клавиатурой
+                        inputContainer.style.position = 'fixed';
+                        inputContainer.style.bottom = '0';
+                        inputContainer.style.left = '0';
+                        inputContainer.style.right = '0';
+                        inputContainer.style.zIndex = '1000';
+                        inputContainer.style.backgroundColor = 'var(--bg-color)';
+                        
+                        // Добавляем отступ для контента, чтобы он не перекрывался инпутом
+                        document.querySelector('.chat-container').style.paddingBottom = 
+                            (inputContainer.offsetHeight + 20) + 'px';
                     } else {
-                        document.body.classList.remove('ios-keyboard-open');
+                        // Возвращаем исходные стили при закрытии клавиатуры
+                        inputContainer.style.position = '';
+                        inputContainer.style.bottom = '';
+                        inputContainer.style.left = '';
+                        inputContainer.style.right = '';
+                        inputContainer.style.zIndex = '';
+                        inputContainer.style.backgroundColor = '';
+                        
+                        // Возвращаем исходный отступ
+                        document.querySelector('.chat-container').style.paddingBottom = '';
                     }
                 });
             }
