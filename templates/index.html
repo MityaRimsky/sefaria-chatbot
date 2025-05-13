@@ -1453,7 +1453,7 @@
                 inputContainer.style.position = 'absolute';
                 inputContainer.style.bottom = `${keyboardHeight}px`;
 
-                // Отключаем прокрутку
+                // Отключаем прокрутку и прижимаем вниз
                 mainContent.style.overflow = 'hidden';
                 mainContent.scrollTop = mainContent.scrollHeight;
                 } else {
@@ -1461,16 +1461,16 @@
                 inputContainer.style.position = 'fixed';
                 inputContainer.style.bottom = '0';
 
-                // Возвращаем прокрутку
+                // Включаем прокрутку обратно
                 mainContent.style.overflowY = 'auto';
                 }
             }
 
-            // Обновляем при изменении визуального вьюпорта
+            // Срабатывает при изменении визуального viewport
             window.visualViewport.addEventListener('resize', updateOnKeyboardChange);
             window.visualViewport.addEventListener('scroll', updateOnKeyboardChange);
 
-            // 📌 Ключевой фикс: при фокусе — с задержкой, чтобы Safari успел "поднять" клавиатуру
+            // При фокусе на поле — даём Safari "успеть"
             messageInput.addEventListener('focus', () => {
                 setTimeout(() => {
                 updateOnKeyboardChange();
@@ -1478,14 +1478,26 @@
                 }, 50);
             });
 
-            // Возврат в исходное состояние после потери фокуса
+            // При потере фокуса — возвращаем всё как было
             messageInput.addEventListener('blur', () => {
                 inputContainer.style.position = 'fixed';
                 inputContainer.style.bottom = '0';
                 mainContent.style.overflowY = 'auto';
             });
 
-            // Первый вызов при инициализации
+            // 🔄 При возврате на вкладку (или из background)
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                setTimeout(updateOnKeyboardChange, 50);
+                }
+            });
+
+            // 🔙 При возврате из bfcache (back/forward кэш)
+            window.addEventListener('pageshow', () => {
+                setTimeout(updateOnKeyboardChange, 50);
+            });
+
+            // Первый вызов при загрузке
             updateOnKeyboardChange();
             }
             
