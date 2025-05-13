@@ -508,7 +508,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            z-index: 100;
+            z-index: 9999;
         }
         
 
@@ -951,28 +951,25 @@
             animation: skeleton-loading 1.5s infinite;
             pointer-events: none;
         }
-
+        
+        /* iOS-специфичные стили */
         @supports (-webkit-touch-callout: none) {
-            /* Это условие сработает только на iOS устройствах */
-            @media not all and (hover: hover) {
-                /* Дополнительная проверка для мобильных iOS (исключает macOS Safari) */
-                .input-container {
-                    position: fixed !important; /* Принудительно fixed вместо sticky */
-                    bottom: 0 !important;
-                    left: 0;
-                    right: 0;
-                }
-                
-                /* Обеспечиваем, чтобы все элементы внутри контейнера оставались вместе */
-                .input-wrapper {
-                    position: relative !important;
-                    z-index: 500 !important;
-                }
-                
-                /* Добавляем отступ для контента */
-                .chat-container {
-                    padding-bottom: 90px !important;
-                }
+            .input-container {
+                position: fixed !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                z-index: 10000 !important;
+                background-color: var(--bg-color) !important;
+            }
+            
+            .welcome-message {
+                min-height: auto !important;
+                height: auto !important;
+            }
+            
+            .chat-container {
+                padding-bottom: 120px !important;
             }
         }
     </style>
@@ -1215,6 +1212,13 @@
                 
                 // Функция для обновления позиции контейнера ввода
                 function updateInputContainerPosition() {
+                    // Проверяем, является ли устройство iOS
+                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                    
+                    // Для iOS не меняем позицию через JavaScript
+                    if (isIOS) return;
+                    
+                    // Для других устройств оставляем существующий код
                     if (window.matchMedia("(max-width: 768px)").matches) {
                         const offsetBottom = window.innerHeight - (window.visualViewport.height + window.visualViewport.offsetTop);
                         inputContainer.style.bottom = `${offsetBottom}px`;
