@@ -511,16 +511,24 @@
             z-index: 9999;
         }
         
-        /* Стили для фиксированного инпута на iOS */
-        .input-fixed {
-            position: fixed !important;
-            bottom: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            z-index: 10000 !important;
-            background-color: var(--bg-color) !important;
-            padding: 16px !important;
-            padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+        /* Стили для iOS при открытой клавиатуре */
+        body.keyboard-open {
+            position: fixed;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        /* Фиксированный инпут над клавиатурой */
+        .input-container.keyboard-fixed {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 10000;
+            background-color: var(--bg-color);
+            padding: 16px;
+            padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+            transform: translateZ(0); /* Включаем аппаратное ускорение */
         }
         
 
@@ -1233,35 +1241,71 @@
             // Только для iOS устройств - фиксация инпута
             if (isIOS) {
                 // Получаем элементы
+                const body = document.body;
                 const messageInput = document.getElementById('message-input');
                 const inputContainer = document.querySelector('.input-container');
+                const mainContent = document.querySelector('.main-content');
                 
-                // Сохраняем исходную высоту окна
-                const originalWindowHeight = window.innerHeight;
+                // Сохраняем исходную высоту окна и позицию прокрутки
+                let originalWindowHeight = window.innerHeight;
+                let scrollPosition = 0;
                 
-                // Функция для определения, открыта ли клавиатура
-                function isKeyboardOpen() {
-                    return window.innerHeight < originalWindowHeight * 0.75;
+                // Функция для обработки открытия клавиатуры
+                function handleKeyboardOpen() {
+                    // Сохраняем текущую позицию прокрутки
+                    scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+                    
+                    // Фиксируем body
+                    body.classList.add('keyboard-open');
+                    body.style.top = `-${scrollPosition}px`;
+                    
+                    // Фиксируем инпут
+                    inputContainer.classList.add('keyboard-fixed');
+                    
+                    // Прокручиваем к инпуту с задержкой
+                    setTimeout(() => {
+                        messageInput.scrollIntoView(false);
+                    }, 100);
+                }
+                
+                // Функция для обработки закрытия клавиатуры
+                function handleKeyboardClose() {
+                    // Удаляем фиксацию с body
+                    body.classList.remove('keyboard-open');
+                    body.style.top = '';
+                    
+                    // Восстанавливаем позицию прокрутки
+                    window.scrollTo(0, scrollPosition);
+                    
+                    // Удаляем фиксацию с инпута
+                    inputContainer.classList.remove('keyboard-fixed');
                 }
                 
                 // Обработчик фокуса на инпуте
                 messageInput.addEventListener('focus', function() {
-                    // Добавляем класс только если клавиатура открыта
-                    if (isKeyboardOpen()) {
-                        inputContainer.classList.add('input-fixed');
-                    }
+                    // Небольшая задержка для стабилизации
+                    setTimeout(() => {
+                        // Проверяем, открыта ли клавиатура
+                        if (window.innerHeight < originalWindowHeight * 0.75) {
+                            handleKeyboardOpen();
+                        }
+                    }, 300);
                 });
                 
                 // Обработчик изменения размера окна
                 window.addEventListener('resize', function() {
-                    if (isKeyboardOpen()) {
+                    // Проверяем, открыта ли клавиатура
+                    if (window.innerHeight < originalWindowHeight * 0.75) {
                         // Если клавиатура открыта и инпут в фокусе
                         if (document.activeElement === messageInput) {
-                            inputContainer.classList.add('input-fixed');
+                            handleKeyboardOpen();
                         }
                     } else {
                         // Если клавиатура закрыта
-                        inputContainer.classList.remove('input-fixed');
+                        handleKeyboardClose();
+                        
+                        // Обновляем исходную высоту окна при изменении ориентации
+                        originalWindowHeight = window.innerHeight;
                     }
                 });
                 
@@ -1271,7 +1315,7 @@
                     setTimeout(() => {
                         // Проверяем, не переместился ли фокус на кнопку отправки
                         if (document.activeElement !== document.getElementById('send-button')) {
-                            inputContainer.classList.remove('input-fixed');
+                            handleKeyboardClose();
                         }
                     }, 100);
                 });
@@ -1279,9 +1323,15 @@
                 // Обработчик нажатия на кнопку отправки
                 document.getElementById('send-button').addEventListener('click', function() {
                     setTimeout(() => {
-                        inputContainer.classList.remove('input-fixed');
+                        handleKeyboardClose();
                     }, 100);
                 });
+                
+                // Отключаем обработчики visualViewport для iOS
+                if (window.visualViewport) {
+                    window.visualViewport.removeEventListener('scroll', updateMobileNavPosition);
+                    window.visualViewport.removeEventListener('scroll', updateInputContainerPosition);
+                }
             }
             
             // Функция для прокрутки чата вниз
