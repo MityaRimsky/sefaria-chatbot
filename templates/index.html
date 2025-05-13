@@ -1438,37 +1438,33 @@
                     }, 300); // Время анимации исчезновения точек
                 });
             }
-            const originalWindowHeight = window.innerHeight;
+            const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-            function updateInputContainerPosition() {
+            if (isiOS && window.visualViewport) {
             const inputContainer = document.querySelector('.input-container');
+            const mainContent = document.querySelector('.main-content');
 
-            if (window.visualViewport) {
-                const offset = originalWindowHeight - window.visualViewport.height;
-                inputContainer.style.bottom = `${offset}px`;
-            } else {
-                inputContainer.style.bottom = `env(safe-area-inset-bottom, 0px)`;
-            }
-            }
-
-            // === Подключаем события ===
-            if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', () => {
-                updateMobileNavPosition();
-                updateInputContainerPosition();
+                const keyboardOpen = window.visualViewport.height < window.innerHeight * 0.7;
+
+                if (keyboardOpen) {
+                inputContainer.style.position = 'absolute';
+                inputContainer.style.bottom = `${window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop}px`;
+                } else {
+                inputContainer.style.position = 'fixed';
+                inputContainer.style.bottom = '0';
+                }
             });
 
-            window.visualViewport.addEventListener('scroll', () => {
-                updateMobileNavPosition();
-                updateInputContainerPosition();
+            const messageInput = document.getElementById('message-input');
+            messageInput.addEventListener('focus', () => {
+                const keyboardOpen = window.visualViewport.height < window.innerHeight * 0.7;
+                if (keyboardOpen) {
+                inputContainer.style.position = 'absolute';
+                inputContainer.style.bottom = `${window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop}px`;
+                }
             });
             }
-
-            // Также при фокусе на поле
-            messageInput.addEventListener('focus', updateInputContainerPosition);
-
-            // Вызов при загрузке
-            updateInputContainerPosition();
             
             // Функция для получения последнего элемента сообщения в чате
             function getLastMessageElement() {
