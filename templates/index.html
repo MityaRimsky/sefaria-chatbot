@@ -1445,28 +1445,23 @@
             const mainContent = document.querySelector('.main-content');
             const messageInput = document.getElementById('message-input');
 
+            let wasBackgroundReturn = false;
+
             function updateOnKeyboardChange() {
                 const keyboardHeight = window.innerHeight - window.visualViewport.height;
 
                 if (keyboardHeight > 150) {
-                // Клавиатура открыта
                 inputContainer.style.position = 'absolute';
                 inputContainer.style.bottom = `${keyboardHeight}px`;
-
-                // Отключаем прокрутку и прижимаем вниз
                 mainContent.style.overflow = 'hidden';
                 mainContent.scrollTop = mainContent.scrollHeight;
                 } else {
-                // Клавиатура закрыта
                 inputContainer.style.position = 'fixed';
                 inputContainer.style.bottom = '0';
-
-                // Включаем прокрутку обратно
                 mainContent.style.overflowY = 'auto';
                 }
             }
 
-            // Надёжная отложенная реакция после возврата из фона или bfcache
             function deferUpdateAfterVisibilityChange() {
                 requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
@@ -1475,11 +1470,6 @@
                 });
             }
 
-            // При изменении visualViewport (клавиатура появляется или исчезает)
-            window.visualViewport.addEventListener('resize', updateOnKeyboardChange);
-            window.visualViewport.addEventListener('scroll', updateOnKeyboardChange);
-
-            // При фокусе: с задержкой, чтобы Safari успел показать клавиатуру
             messageInput.addEventListener('focus', () => {
                 setTimeout(() => {
                 updateOnKeyboardChange();
@@ -1487,28 +1477,41 @@
                 }, 50);
             });
 
-            // При потере фокуса — возвращаем всё как было
             messageInput.addEventListener('blur', () => {
                 inputContainer.style.position = 'fixed';
                 inputContainer.style.bottom = '0';
                 mainContent.style.overflowY = 'auto';
             });
 
-            // При возврате из другой вкладки / приложения
+            window.visualViewport.addEventListener('resize', updateOnKeyboardChange);
+            window.visualViewport.addEventListener('scroll', updateOnKeyboardChange);
+
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible') {
+                wasBackgroundReturn = true;
                 deferUpdateAfterVisibilityChange();
                 }
             });
 
-            // При возврате из back-forward cache (Safari bfcache)
             window.addEventListener('pageshow', () => {
+                wasBackgroundReturn = true;
                 deferUpdateAfterVisibilityChange();
             });
 
-            // Вызов при первой загрузке
+            window.fixKeyboardAfterChatChange = () => {
+                if (wasBackgroundReturn) {
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                    updateOnKeyboardChange();
+                    wasBackgroundReturn = false;
+                    });
+                });
+                }
+            };
+
             updateOnKeyboardChange();
             }
+
             // Функция для получения последнего элемента сообщения в чате
             function getLastMessageElement() {
                 const messageRows = chatContainer.querySelectorAll('.message-row');
@@ -1857,42 +1860,48 @@
             
             // Функция для загрузки конкретного чата
             async function loadChat(sessionId) {
-                try {
-                    // Очищаем контейнер чата
-                    chatContainer.innerHTML = '';
-                    
-                    // Загружаем сообщения выбранного чата
-                    const messages = await window.chatService.getChatMessages(sessionId);
-                    
-                    // Добавляем сообщения в чат
-                    messages.forEach(message => {
-                        const isUser = message.sender === 'user';
-                        addMessageToUI(message.content, isUser);
-                    });
-                    
-                    // Обновляем текущий ID сессии
-                    currentSessionId = sessionId;
-                    
-                    // Обновляем активный элемент в списке чатов
-                    document.querySelectorAll('.chat-item').forEach(item => {
-                        item.classList.remove('active');
-                        if (item.dataset.sessionId === sessionId) {
-                            item.classList.add('active');
-                        }
-                    });
-                    
-                    // Закрываем мобильное меню истории
-                    closeMobileHistory();
-                    
-                    // Проверяем, нужно ли показать приветственное сообщение
-                    checkMessagesAndToggleWelcome();
-                    
-                    // Прокручиваем чат вниз после загрузки
-                    scrollChatToBottom();
-                } catch (error) {
-                    console.error('Ошибка при загрузке чата:', error);
-                    showError('Не удалось загрузить сообщения чата');
+            try {
+                // Очищаем контейнер чата
+                chatContainer.innerHTML = '';
+
+                // Загружаем сообщения выбранного чата
+                const messages = await window.chatService.getChatMessages(sessionId);
+
+                // Добавляем сообщения в чат
+                messages.forEach(message => {
+                const isUser = message.sender === 'user';
+                addMessageToUI(message.content, isUser);
+                });
+
+                // Обновляем текущий ID сессии
+                currentSessionId = sessionId;
+
+                // Обновляем активный элемент в списке чатов
+                document.querySelectorAll('.chat-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.sessionId === sessionId) {
+                    item.classList.add('active');
                 }
+                });
+
+                // Закрываем мобильное меню истории
+                closeMobileHistory();
+
+                // Проверяем, нужно ли показать приветственное сообщение
+                checkMessagesAndToggleWelcome();
+
+                // Прокручиваем чат вниз после загрузки
+                scrollChatToBottom();
+
+                // ✅ Фикс для iOS: если до этого был возврат из фона — пересчитать layout
+                if (typeof window.fixKeyboardAfterChatChange === 'function') {
+                window.fixKeyboardAfterChatChange();
+                }
+
+            } catch (error) {
+                console.error('Ошибка при загрузке чата:', error);
+                showError('Не удалось загрузить сообщения чата');
+            }
             }
             
             // Функция для обновления списка чатов
