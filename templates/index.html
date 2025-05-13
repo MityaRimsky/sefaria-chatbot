@@ -1461,22 +1461,38 @@
                 inputContainer.style.position = 'fixed';
                 inputContainer.style.bottom = '0';
 
-                // Включаем прокрутку обратно
+                // Возвращаем прокрутку
                 mainContent.style.overflowY = 'auto';
                 }
             }
 
+            // Обновляем при изменении визуального вьюпорта
             window.visualViewport.addEventListener('resize', updateOnKeyboardChange);
             window.visualViewport.addEventListener('scroll', updateOnKeyboardChange);
-            messageInput.addEventListener('focus', updateOnKeyboardChange);
+
+            // 📌 Ключевой фикс: при фокусе — с задержкой, чтобы Safari успел "поднять" клавиатуру
+            messageInput.addEventListener('focus', () => {
+                setTimeout(() => {
+                updateOnKeyboardChange();
+                mainContent.scrollTop = mainContent.scrollHeight;
+                }, 50);
+            });
+
+            // Возврат в исходное состояние после потери фокуса
             messageInput.addEventListener('blur', () => {
-                // После потери фокуса всё возвращаем
                 inputContainer.style.position = 'fixed';
                 inputContainer.style.bottom = '0';
                 mainContent.style.overflowY = 'auto';
             });
 
-            updateOnKeyboardChange(); // первый вызов
+            // Первый вызов при инициализации
+            updateOnKeyboardChange();
+            }
+            
+            // Функция для получения последнего элемента сообщения в чате
+            function getLastMessageElement() {
+                const messageRows = chatContainer.querySelectorAll('.message-row');
+                return messageRows.length > 0 ? messageRows[messageRows.length - 1] : null;
             }
             
             // Функция для получения последнего сообщения пользователя из Supabase
