@@ -508,7 +508,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            z-index: 500;
+            z-index: 9999;
         }
         
 
@@ -783,28 +783,6 @@
         .new-chat-btn:active {
         background-color: rgba(0, 127, 231, 0.1) !important;
         transition: background-color 0.1s;
-        }
-        
-        /* iOS-специфичные стили */
-        @supports (-webkit-touch-callout: none) {
-            /* Убираем голубую подсветку на iOS */
-            .mobile-btn,
-            .send-button,
-            .chat-item,
-            .sidebar-user,
-            .new-chat-btn {
-                -webkit-tap-highlight-color: transparent;
-            }
-            
-            /* Опционально: добавляет анимацию для :active */
-            .mobile-btn:active,
-            .send-button:active,
-            .chat-item:active,
-            .sidebar-user:active,
-            .new-chat-btn:active {
-                background-color: rgba(0, 127, 231, 0.1) !important;
-                transition: background-color 0.1s;
-            }
         }
         
         /* Стили для элементов профиля */
@@ -1199,92 +1177,6 @@
                 this.style.height = (this.scrollHeight) + 'px';
             });
             
-            // Определяем iOS
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            if (isIOS) {
-                // Добавляем класс для iOS
-                document.body.classList.add('ios-device');
-                
-                // Сохраняем исходную высоту окна
-                const originalWindowHeight = window.innerHeight;
-                
-                // Добавляем минимальные стили для iOS
-                const iosStyle = document.createElement('style');
-                iosStyle.textContent = `
-                    /* Стили для инпута при открытой клавиатуре */
-                    body.ios-keyboard-open .input-container {
-                        position: fixed !important;
-                        bottom: 0 !important;
-                        left: 0 !important;
-                        right: 0 !important;
-                        z-index: 1000 !important;
-                        background-color: var(--bg-color) !important;
-                        padding-bottom: env(safe-area-inset-bottom, 10px) !important;
-                    }
-                    
-                    /* Стили для хедера при открытой клавиатуре */
-                    body.ios-keyboard-open .mobile-nav {
-                        position: fixed !important;
-                        top: 0 !important;
-                        left: 0 !important;
-                        right: 0 !important;
-                        z-index: 1000 !important;
-                    }
-                    
-                    /* Стили для контейнера сообщений при открытой клавиатуре */
-                    body.ios-keyboard-open .main-content {
-                        padding-top: 70px !important; /* Высота хедера */
-                        padding-bottom: 90px !important; /* Высота инпута */
-                    }
-                `;
-                document.head.appendChild(iosStyle);
-                
-                // Функция для обработки открытия/закрытия клавиатуры
-                function handleKeyboardVisibility(isKeyboardOpen) {
-                    if (isKeyboardOpen) {
-                        document.body.classList.add('ios-keyboard-open');
-                        
-                        // Небольшая задержка для стабилизации
-                        setTimeout(() => {
-                            // Прокручиваем к последнему сообщению или инпуту
-                            const messageInput = document.getElementById('message-input');
-                            messageInput.scrollIntoView(false);
-                        }, 300);
-                    } else {
-                        document.body.classList.remove('ios-keyboard-open');
-                    }
-                }
-                
-                // Отслеживаем изменение размера окна (открытие/закрытие клавиатуры)
-                window.addEventListener('resize', function() {
-                    const isKeyboardOpen = window.innerHeight < originalWindowHeight * 0.75;
-                    handleKeyboardVisibility(isKeyboardOpen);
-                });
-                
-                // Обработчик фокуса на инпуте
-                document.getElementById('message-input').addEventListener('focus', function() {
-                    handleKeyboardVisibility(true);
-                });
-                
-                // Обработчик потери фокуса на инпуте
-                document.getElementById('message-input').addEventListener('blur', function() {
-                    // Небольшая задержка, чтобы не мешать нажатию на кнопку отправки
-                    setTimeout(() => {
-                        // Проверяем, не был ли фокус перемещен на кнопку отправки
-                        if (document.activeElement !== document.getElementById('send-button')) {
-                            handleKeyboardVisibility(false);
-                        }
-                    }, 100);
-                });
-                
-                // Обработчик нажатия на кнопку отправки
-                document.getElementById('send-button').addEventListener('click', function() {
-                    setTimeout(() => {
-                        handleKeyboardVisibility(false);
-                    }, 100);
-                });
-            }
-            
             // Проверяем поддержку Visual Viewport API
             if (window.visualViewport) {
                 const mobileNav = document.querySelector('.mobile-nav');
@@ -1299,7 +1191,7 @@
                 
                 // Функция для обновления позиции контейнера ввода
                 function updateInputContainerPosition() {
-                    if (window.matchMedia("(max-width: 768px)").matches && !isIOS) {
+                    if (window.matchMedia("(max-width: 768px)").matches) {
                         const offsetBottom = window.innerHeight - (window.visualViewport.height + window.visualViewport.offsetTop);
                         inputContainer.style.bottom = `${offsetBottom}px`;
                     } else {
