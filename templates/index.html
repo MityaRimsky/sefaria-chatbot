@@ -951,6 +951,24 @@
             animation: skeleton-loading 1.5s infinite;
             pointer-events: none;
         }
+
+        /* Минимальное решение только для iOS Safari */
+        @media screen and (-webkit-min-device-pixel-ratio: 0) and (max-device-width: 1024px) {
+            @supports (-webkit-touch-callout: none) {
+                .input-container {
+                    position: fixed !important;
+                    bottom: 0 !important;
+                }
+                
+                .input-wrapper {
+                    position: relative !important;
+                }
+                
+                .chat-container {
+                    padding-bottom: 90px !important;
+                }
+            }
+        }
     </style>
 </head>
 <body>
