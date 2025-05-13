@@ -951,6 +951,16 @@
             animation: skeleton-loading 1.5s infinite;
             pointer-events: none;
         }
+
+        @supports (-webkit-touch-callout: none) {
+            @media screen and (max-width: 768px) {
+                .input-container {
+                position: sticky !important;
+                bottom: 0 !important;
+                z-index: 999 !important;
+                }
+            }
+        }
     </style>
 </head>
 <body>
