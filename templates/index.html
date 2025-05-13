@@ -1000,16 +1000,21 @@
                 left: 0 !important;
                 right: 0 !important;
                 bottom: 90px !important; /* Высота input-container */
-                overflow-y: auto !important;
+                overflow-y: scroll !important; /* Принудительно включаем скролл */
                 -webkit-overflow-scrolling: touch !important;
                 z-index: 1 !important;
                 padding-bottom: 20px !important;
+                margin: 0 !important;
+                height: auto !important;
             }
             
-            /* Корректировка при открытой клавиатуре */
+            /* Стили для состояния с открытой клавиатурой */
+            body.ios-keyboard-open .input-container {
+                bottom: var(--keyboard-height, 0) !important; /* Прикрепляем к клавиатуре */
+            }
+            
             body.ios-keyboard-open .chat-container {
-                bottom: 90px !important;
-                height: auto !important;
+                bottom: calc(90px + var(--keyboard-height, 0)) !important; /* Учитываем высоту input-container и клавиатуры */
             }
             
             /* Предотвращаем скроллинг на всех элементах, кроме chat-container */
@@ -1245,11 +1250,12 @@
                     if (window.innerHeight < originalWindowHeight * 0.75) {
                         document.body.classList.add('ios-keyboard-open');
                         
-                        // Устанавливаем высоту контейнера чата
+                        // Вычисляем высоту клавиатуры
                         const keyboardHeight = originalWindowHeight - window.innerHeight;
                         document.documentElement.style.setProperty('--keyboard-height', `${keyboardHeight}px`);
                     } else {
                         document.body.classList.remove('ios-keyboard-open');
+                        document.documentElement.style.setProperty('--keyboard-height', '0px');
                     }
                 });
                 
