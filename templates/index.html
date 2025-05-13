@@ -973,6 +973,16 @@
             animation: skeleton-loading 1.5s infinite;
             pointer-events: none;
         }
+
+        @media (max-width: 768px) {
+            .input-container {
+                position: fixed;
+                bottom: env(safe-area-inset-bottom);
+                left: 0;
+                right: 0;
+                /* уберите height:100dvh у основного контейнера, если мешает */
+            }
+        }
     </style>
 </head>
 <body>
@@ -1245,35 +1255,38 @@
                 const mobileNav = document.querySelector('.mobile-nav');
                 const inputContainer = document.querySelector('.input-container');
                 
-                // Функция для обновления позиции мобильной навигации
+                // ваша логика позиционирования мобильной навигации
                 function updateMobileNavPosition() {
-                    if (window.matchMedia("(max-width: 768px)").matches) {
-                        mobileNav.style.top = `${window.visualViewport.offsetTop}px`;
-                    }
+                    // …existing code…
                 }
-                
-                // Функция для обновления позиции контейнера ввода
+                // ваша логика обновления отступов контейнера ввода
                 function updateInputContainerPosition() {
-                    if (window.matchMedia("(max-width: 768px)").matches && !isIOS) {
-                        const offsetBottom = window.innerHeight - (window.visualViewport.height + window.visualViewport.offsetTop);
-                        inputContainer.style.bottom = `${offsetBottom}px`;
-                    } else {
-                        inputContainer.style.bottom = '0';
-                    }
+                    // …existing code…
                 }
-                
-                // Обработчики событий для Visual Viewport API
+
+                // Делаем input-container fixed при появлении клавиатуры
                 window.visualViewport.addEventListener('resize', () => {
+                    const vh = window.visualViewport.height;
+                    if (vh < window.screen.height * 0.5) {
+                        // клавиатура открыта
+                        inputContainer.style.position = 'fixed';
+                        inputContainer.style.bottom = '0';
+                    } else {
+                        // клавиатура закрыта
+                        inputContainer.style.position = '';
+                        inputContainer.style.bottom = '';
+                    }
+                    // обновляем позицию шапки и отступы
                     updateMobileNavPosition();
                     updateInputContainerPosition();
                 });
-                
+
                 window.visualViewport.addEventListener('scroll', () => {
                     updateMobileNavPosition();
                     updateInputContainerPosition();
                 });
-                
-                // Инициализация позиций
+
+                // Инициализация при загрузке
                 updateMobileNavPosition();
                 updateInputContainerPosition();
             }
