@@ -1152,6 +1152,7 @@
     <script src="/static/js/chat-service.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async function() {
+            
             // Инициализируем модуль i18n
             await window.i18nModule.initI18n();
             
@@ -1437,6 +1438,37 @@
                     }, 300); // Время анимации исчезновения точек
                 });
             }
+            const originalWindowHeight = window.innerHeight;
+
+            function updateInputContainerPosition() {
+            const inputContainer = document.querySelector('.input-container');
+
+            if (window.visualViewport) {
+                const offset = originalWindowHeight - window.visualViewport.height;
+                inputContainer.style.bottom = `${offset}px`;
+            } else {
+                inputContainer.style.bottom = `env(safe-area-inset-bottom, 0px)`;
+            }
+            }
+
+            // === Подключаем события ===
+            if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => {
+                updateMobileNavPosition();
+                updateInputContainerPosition();
+            });
+
+            window.visualViewport.addEventListener('scroll', () => {
+                updateMobileNavPosition();
+                updateInputContainerPosition();
+            });
+            }
+
+            // Также при фокусе на поле
+            messageInput.addEventListener('focus', updateInputContainerPosition);
+
+            // Вызов при загрузке
+            updateInputContainerPosition();
             
             // Функция для получения последнего элемента сообщения в чате
             function getLastMessageElement() {
