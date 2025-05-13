@@ -1445,19 +1445,15 @@
             const mainContent = document.querySelector('.main-content');
             const messageInput = document.getElementById('message-input');
 
-            let wasBackgroundReturn = false;
-
             function updateOnKeyboardChange() {
                 const keyboardHeight = window.innerHeight - window.visualViewport.height;
 
                 if (keyboardHeight > 150) {
-                // Клавиатура открыта
                 inputContainer.style.position = 'absolute';
                 inputContainer.style.bottom = `${keyboardHeight}px`;
                 mainContent.style.overflow = 'hidden';
                 mainContent.scrollTop = mainContent.scrollHeight;
                 } else {
-                // Клавиатура закрыта
                 inputContainer.style.position = 'fixed';
                 inputContainer.style.bottom = '0';
                 mainContent.style.overflowY = 'auto';
@@ -1490,34 +1486,29 @@
 
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible') {
-                wasBackgroundReturn = true;
                 deferUpdateAfterVisibilityChange();
                 }
             });
 
             window.addEventListener('pageshow', () => {
-                wasBackgroundReturn = true;
                 deferUpdateAfterVisibilityChange();
             });
 
-            // 🔧 Важно: вызывается из loadChat() после смены чата
+            // 💡 Теперь работает всегда, даже без возврата из фона
             window.fixKeyboardAfterChatChange = () => {
-                if (wasBackgroundReturn) {
                 const messageInput = document.getElementById('message-input');
                 if (!messageInput) return;
 
                 setTimeout(() => {
-                    requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
                     messageInput.blur();
                     messageInput.focus();
                     updateOnKeyboardChange();
-                    wasBackgroundReturn = false;
-                    });
-                }, 150); // увеличенная задержка для iOS
-                }
+                });
+                }, 150);
             };
 
-            // ⏩ Инициализация
+            // Запускаем один раз при загрузке
             updateOnKeyboardChange();
             }
 
