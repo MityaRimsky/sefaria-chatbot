@@ -1205,14 +1205,24 @@
 
             /* — футер с полем ввода — */
             function updateInputContainerPosition() {
-                if (!mobileQuery.matches) {          // десктоп — ничего не двигаем
-                inputContainer.style.transform = "";
-                return;
+                /* ① Десктоп (>768 px) — ничего не двигаем */
+                if (!mobileQuery.matches) {
+                    inputContainer.style.transform = "";
+                    return;
                 }
+
                 const vv = window.visualViewport;
+
+                /* ② Android: offsetTop = 0 → сдвиг не нужен */
+                if (vv.offsetTop === 0) {
+                    inputContainer.style.transform = "";
+                    return;
+                }
+
+                /* ③ iOS: offsetTop > 0 → считаем высоту клавиатуры */
                 const offsetBottom = window.innerHeight - (vv.height + vv.offsetTop);
                 inputContainer.style.transform = `translateY(-${offsetBottom}px)`;
-            }
+                }
 
             /* — инициализация и подписки — */
             updateMobileNavPosition();
