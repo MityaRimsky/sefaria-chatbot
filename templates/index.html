@@ -1443,33 +1443,40 @@
             if (isiOS && window.visualViewport) {
             const inputContainer = document.querySelector('.input-container');
             const mainContent = document.querySelector('.main-content');
+            const messageInput = document.getElementById('message-input');
 
-            window.visualViewport.addEventListener('resize', () => {
-                const keyboardOpen = window.visualViewport.height < window.innerHeight * 0.7;
+            function updateOnKeyboardChange() {
+                const keyboardHeight = window.innerHeight - window.visualViewport.height;
 
-                if (keyboardOpen) {
+                if (keyboardHeight > 150) {
+                // Клавиатура открыта
                 inputContainer.style.position = 'absolute';
-                inputContainer.style.bottom = `${window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop}px`;
+                inputContainer.style.bottom = `${keyboardHeight}px`;
+
+                // Отключаем прокрутку
+                mainContent.style.overflow = 'hidden';
+                mainContent.scrollTop = mainContent.scrollHeight;
                 } else {
+                // Клавиатура закрыта
                 inputContainer.style.position = 'fixed';
                 inputContainer.style.bottom = '0';
+
+                // Включаем прокрутку обратно
+                mainContent.style.overflowY = 'auto';
                 }
+            }
+
+            window.visualViewport.addEventListener('resize', updateOnKeyboardChange);
+            window.visualViewport.addEventListener('scroll', updateOnKeyboardChange);
+            messageInput.addEventListener('focus', updateOnKeyboardChange);
+            messageInput.addEventListener('blur', () => {
+                // После потери фокуса всё возвращаем
+                inputContainer.style.position = 'fixed';
+                inputContainer.style.bottom = '0';
+                mainContent.style.overflowY = 'auto';
             });
 
-            const messageInput = document.getElementById('message-input');
-            messageInput.addEventListener('focus', () => {
-                const keyboardOpen = window.visualViewport.height < window.innerHeight * 0.7;
-                if (keyboardOpen) {
-                inputContainer.style.position = 'absolute';
-                inputContainer.style.bottom = `${window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop}px`;
-                }
-            });
-            }
-            
-            // Функция для получения последнего элемента сообщения в чате
-            function getLastMessageElement() {
-                const messageRows = chatContainer.querySelectorAll('.message-row');
-                return messageRows.length > 0 ? messageRows[messageRows.length - 1] : null;
+            updateOnKeyboardChange(); // первый вызов
             }
             
             // Функция для получения последнего сообщения пользователя из Supabase
