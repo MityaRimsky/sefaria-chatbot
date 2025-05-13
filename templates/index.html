@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, height=device-height">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <title>SHUVA</title>
     <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg">
     <link rel="apple-touch-icon" href="/static/images/logo-apple-touch.png">
@@ -245,12 +245,15 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            height: 100dvh;
+            height: 100vh;                 /* <— используем обычные 100vh */
             position: relative;
             background-color: #fff;
             overflow-y: auto;
-            scrollbar-width: none;
+            scrollbar-width: none;         /* Firefox */
             z-index: 1;
+
+            /* Современные браузеры перезапишут значение ниже */
+            height: calc(var(--vh, 1vh) * 100);  /* если --vh нет, возьмётся 1vh */
         }
         
         /* Область сообщений */
@@ -509,19 +512,6 @@
             left: 0;
             right: 0;
             z-index: 9999;
-        }
-        
-        /* Стили для инпута, перемещенного в body */
-        .input-container.moved-to-body {
-            position: fixed !important;
-            bottom: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            z-index: 10000 !important;
-            background-color: var(--bg-color) !important;
-            padding: 16px !important;
-            padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
-            transition: none !important;
         }
         
 
@@ -1190,9 +1180,6 @@
                 this.style.height = (this.scrollHeight) + 'px';
             });
             
-            // Определяем iOS
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            
             // Проверяем поддержку Visual Viewport API
             if (window.visualViewport) {
                 const mobileNav = document.querySelector('.mobile-nav');
@@ -1229,96 +1216,6 @@
                 // Инициализация позиций
                 updateMobileNavPosition();
                 updateInputContainerPosition();
-            }
-            
-            // Только для iOS устройств - перемещение инпута в DOM
-            if (isIOS) {
-                // Получаем элементы
-                const messageInput = document.getElementById('message-input');
-                const inputContainer = document.querySelector('.input-container');
-                const mainContent = document.querySelector('.main-content');
-                
-                // Сохраняем оригинальную структуру DOM
-                let originalParent = inputContainer.parentNode;
-                let originalNextSibling = inputContainer.nextSibling;
-                let isInputMoved = false;
-                
-                // Функция для перемещения инпута в body
-                function moveInputToBody() {
-                    if (isInputMoved) return; // Предотвращаем повторное перемещение
-                    
-                    // Удаляем инпут из текущего родителя
-                    if (inputContainer.parentNode) {
-                        originalParent = inputContainer.parentNode;
-                        originalNextSibling = inputContainer.nextSibling;
-                        originalParent.removeChild(inputContainer);
-                    }
-                    
-                    // Добавляем класс для стилей
-                    inputContainer.classList.add('moved-to-body');
-                    
-                    // Добавляем инпут в конец body
-                    document.body.appendChild(inputContainer);
-                    
-                    // Отмечаем, что инпут перемещен
-                    isInputMoved = true;
-                    
-                    // Прокручиваем к инпуту
-                    setTimeout(() => {
-                        messageInput.scrollIntoView(false);
-                    }, 100);
-                }
-                
-                // Функция для возврата инпута на оригинальную позицию
-                function restoreInputPosition() {
-                    if (!isInputMoved) return; // Предотвращаем повторное восстановление
-                    
-                    // Удаляем инпут из body
-                    if (inputContainer.parentNode === document.body) {
-                        document.body.removeChild(inputContainer);
-                    }
-                    
-                    // Удаляем класс для стилей
-                    inputContainer.classList.remove('moved-to-body');
-                    
-                    // Возвращаем инпут на оригинальную позицию
-                    if (originalParent) {
-                        if (originalNextSibling) {
-                            originalParent.insertBefore(inputContainer, originalNextSibling);
-                        } else {
-                            originalParent.appendChild(inputContainer);
-                        }
-                    }
-                    
-                    // Отмечаем, что инпут возвращен
-                    isInputMoved = false;
-                }
-                
-                // Обработчик фокуса на инпуте
-                messageInput.addEventListener('focus', function() {
-                    // Перемещаем инпут в body с задержкой
-                    setTimeout(() => {
-                        moveInputToBody();
-                    }, 300);
-                });
-                
-                // Обработчик потери фокуса
-                messageInput.addEventListener('blur', function() {
-                    // Небольшая задержка, чтобы не мешать нажатию на кнопку отправки
-                    setTimeout(() => {
-                        // Проверяем, не переместился ли фокус на кнопку отправки
-                        if (document.activeElement !== document.getElementById('send-button')) {
-                            restoreInputPosition();
-                        }
-                    }, 100);
-                });
-                
-                // Обработчик нажатия на кнопку отправки
-                document.getElementById('send-button').addEventListener('click', function() {
-                    setTimeout(() => {
-                        restoreInputPosition();
-                    }, 100);
-                });
             }
             
             // Функция для прокрутки чата вниз
