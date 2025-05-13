@@ -1488,13 +1488,13 @@
             // 🔄 При возврате на вкладку (или из background)
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible') {
-                setTimeout(updateOnKeyboardChange, 50);
+                setTimeout(updateOnKeyboardChange, 100);
                 }
             });
 
             // 🔙 При возврате из bfcache (back/forward кэш)
             window.addEventListener('pageshow', () => {
-                setTimeout(updateOnKeyboardChange, 50);
+                setTimeout(updateOnKeyboardChange, 100);
             });
 
             // Первый вызов при загрузке
