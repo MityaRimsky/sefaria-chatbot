@@ -524,14 +524,6 @@
             gap: 10px;
         }
         
-        @media (max-width: 768px){
-            .input-container{
-                position: fixed;                               /* поверх клавиатуры */
-                inset-inline: 0;                               /* left & right */
-                inset-block-end: env(safe-area-inset-bottom);  /* учёт home-bar */
-                transition: transform .2s ease;                /* плавный сдвиг */
-            }
-        }
         #message-input {
             flex: 1;
             padding: 16px 24px;
@@ -1190,52 +1182,40 @@
             
             // Проверяем поддержку Visual Viewport API
             if (window.visualViewport) {
-            const mobileQuery = window.matchMedia("(max-width: 768px)");
-            const mobileNav      = document.querySelector(".mobile-nav");
-            const inputContainer = document.querySelector(".input-container");
-
-            /* — мобильная навигация — */
-            function updateMobileNavPosition() {
-                if (mobileQuery.matches) {
-                mobileNav.style.top = `${window.visualViewport.offsetTop}px`;
-                } else {
-                mobileNav.style.top = "0";         // десктоп — сброс
+                const mobileNav = document.querySelector('.mobile-nav');
+                const inputContainer = document.querySelector('.input-container');
+                
+                // Функция для обновления позиции мобильной навигации
+                function updateMobileNavPosition() {
+                    if (window.matchMedia("(max-width: 768px)").matches) {
+                        mobileNav.style.top = `${window.visualViewport.offsetTop}px`;
+                    }
                 }
-            }
-
-            /* — футер с полем ввода — */
-            function updateInputContainerPosition() {
-                /* ① Десктоп (>768 px) — ничего не двигаем */
-                if (!mobileQuery.matches) {
-                    inputContainer.style.transform = "";
-                    return;
+                
+                // Функция для обновления позиции контейнера ввода
+                function updateInputContainerPosition() {
+                    if (window.matchMedia("(max-width: 768px)").matches) {
+                        const offsetBottom = window.innerHeight - (window.visualViewport.height + window.visualViewport.offsetTop);
+                        inputContainer.style.bottom = `${offsetBottom}px`;
+                    } else {
+                        inputContainer.style.bottom = '0';
+                    }
                 }
-
-                const vv = window.visualViewport;
-
-                /* ② Android: offsetTop = 0 → сдвиг не нужен */
-                if (vv.offsetTop === 0) {
-                    inputContainer.style.transform = "";
-                    return;
-                }
-
-                /* ③ iOS: offsetTop > 0 → считаем высоту клавиатуры */
-                const offsetBottom = window.innerHeight - (vv.height + vv.offsetTop);
-                inputContainer.style.transform = `translateY(-${offsetBottom}px)`;
-                }
-
-            /* — инициализация и подписки — */
-            updateMobileNavPosition();
-            updateInputContainerPosition();
-
-            const rerender = () => {
+                
+                // Обработчики событий для Visual Viewport API
+                window.visualViewport.addEventListener('resize', () => {
+                    updateMobileNavPosition();
+                    updateInputContainerPosition();
+                });
+                
+                window.visualViewport.addEventListener('scroll', () => {
+                    updateMobileNavPosition();
+                    updateInputContainerPosition();
+                });
+                
+                // Инициализация позиций
                 updateMobileNavPosition();
                 updateInputContainerPosition();
-            };
-            window.visualViewport.addEventListener("resize",  rerender);
-            window.visualViewport.addEventListener("scroll",  rerender); // iOS < 17
-            window.addEventListener("orientationchange",      rerender);
-            mobileQuery.addEventListener("change",            rerender); // switch desktop/mobile
             }
             
             // Функция для прокрутки чата вниз
