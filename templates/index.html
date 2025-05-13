@@ -1466,11 +1466,20 @@
                 }
             }
 
-            // Срабатывает при изменении визуального viewport
+            // Надёжная отложенная реакция после возврата из фона или bfcache
+            function deferUpdateAfterVisibilityChange() {
+                requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    updateOnKeyboardChange();
+                });
+                });
+            }
+
+            // При изменении visualViewport (клавиатура появляется или исчезает)
             window.visualViewport.addEventListener('resize', updateOnKeyboardChange);
             window.visualViewport.addEventListener('scroll', updateOnKeyboardChange);
 
-            // При фокусе на поле — даём Safari "успеть"
+            // При фокусе: с задержкой, чтобы Safari успел показать клавиатуру
             messageInput.addEventListener('focus', () => {
                 setTimeout(() => {
                 updateOnKeyboardChange();
@@ -1485,22 +1494,21 @@
                 mainContent.style.overflowY = 'auto';
             });
 
-            // 🔄 При возврате на вкладку (или из background)
+            // При возврате из другой вкладки / приложения
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible') {
-                setTimeout(updateOnKeyboardChange, 100);
+                deferUpdateAfterVisibilityChange();
                 }
             });
 
-            // 🔙 При возврате из bfcache (back/forward кэш)
+            // При возврате из back-forward cache (Safari bfcache)
             window.addEventListener('pageshow', () => {
-                setTimeout(updateOnKeyboardChange, 100);
+                deferUpdateAfterVisibilityChange();
             });
 
-            // Первый вызов при загрузке
+            // Вызов при первой загрузке
             updateOnKeyboardChange();
             }
-            
             // Функция для получения последнего элемента сообщения в чате
             function getLastMessageElement() {
                 const messageRows = chatContainer.querySelectorAll('.message-row');
