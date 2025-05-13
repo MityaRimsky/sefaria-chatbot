@@ -954,41 +954,56 @@
         
         /* iOS-специфичные стили */
         @supports (-webkit-touch-callout: none) {
-            /* Фиксируем контейнер ввода внизу экрана */
-            .input-container {
-                position: fixed !important;
+            /* Изменяем структуру контейнеров для iOS */
+            body.ios-device {
+                display: flex;
+                flex-direction: column;
+                height: 100vh;
+                overflow: hidden;
+            }
+            
+            /* Основной контейнер без скроллинга */
+            body.ios-device .main-content {
+                flex: 1;
+                position: relative;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            /* Контейнер чата со скроллингом */
+            body.ios-device .chat-container {
+                flex: 1;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 120px;
+                margin-bottom: 0;
+            }
+            
+            /* Контейнер ввода абсолютно позиционирован внизу */
+            body.ios-device .input-container {
+                position: absolute !important;
                 bottom: 0 !important;
                 left: 0 !important;
                 right: 0 !important;
-                z-index: 10000 !important; /* Увеличиваем z-index, чтобы быть поверх всего */
+                z-index: 10000 !important;
                 background-color: var(--bg-color) !important;
             }
             
-            /* Предотвращаем скроллинг основного контейнера при открытой клавиатуре */
-            body.ios-keyboard-open .main-content {
+            /* Предотвращаем скроллинг основного контейнера */
+            body.ios-device .main-content {
                 overflow: hidden !important;
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
-                bottom: 0 !important;
             }
             
-            /* Обеспечиваем, чтобы чат-контейнер был скроллируемым */
-            body.ios-keyboard-open .chat-container {
-                overflow-y: auto !important;
-                height: 100% !important;
-                padding-bottom: 150px !important; /* Увеличиваем отступ для инпута */
-            }
-            
-            /* Когда клавиатура закрыта */
-            .chat-container {
-                padding-bottom: 120px !important; /* Отступ для инпута */
-            }
-            
-            .welcome-message {
+            /* Приветственное сообщение */
+            body.ios-device .welcome-message {
                 min-height: auto !important;
                 height: auto !important;
+            }
+            
+            /* Дополнительные стили для состояния с открытой клавиатурой */
+            body.ios-keyboard-open .chat-container {
+                height: calc(100vh - 60px - var(--keyboard-height, 216px)) !important;
             }
         }
     </style>
@@ -1195,13 +1210,22 @@
                 // Добавляем класс для iOS
                 document.body.classList.add('ios-device');
                 
+                // Сохраняем исходную высоту окна
+                const originalWindowHeight = window.innerHeight;
+                
+                // Устанавливаем CSS-переменную для высоты клавиатуры
+                document.documentElement.style.setProperty('--keyboard-height', '216px');
+                
                 // Отслеживаем изменение размера окна (открытие/закрытие клавиатуры)
                 window.addEventListener('resize', function() {
-                    if (window.innerHeight < window.outerHeight * 0.8) {
-                        // Клавиатура открыта
+                    // Если текущая высота меньше исходной, клавиатура открыта
+                    if (window.innerHeight < originalWindowHeight * 0.75) {
                         document.body.classList.add('ios-keyboard-open');
+                        
+                        // Устанавливаем высоту контейнера чата
+                        const keyboardHeight = originalWindowHeight - window.innerHeight;
+                        document.documentElement.style.setProperty('--keyboard-height', `${keyboardHeight}px`);
                     } else {
-                        // Клавиатура закрыта
                         document.body.classList.remove('ios-keyboard-open');
                     }
                 });
