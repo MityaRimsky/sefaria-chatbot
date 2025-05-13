@@ -973,16 +973,6 @@
             animation: skeleton-loading 1.5s infinite;
             pointer-events: none;
         }
-
-        @media (max-width: 768px) {
-            .input-container {
-                position: fixed;
-                bottom: env(safe-area-inset-bottom);
-                left: 0;
-                right: 0;
-                /* уберите height:100dvh у основного контейнера, если мешает */
-            }
-        }
     </style>
 </head>
 <body>
@@ -1218,34 +1208,79 @@
                 // Сохраняем исходную высоту окна
                 const originalWindowHeight = window.innerHeight;
                 
+                // Создаем фиксированный контейнер для инпута
+                const createFixedInputContainer = () => {
+                    // Получаем оригинальный контейнер и его содержимое
+                    const originalContainer = document.querySelector('.input-container');
+                    const inputWrapper = originalContainer.querySelector('.input-wrapper');
+                    const inputInfo = originalContainer.querySelector('.input-info');
+                    
+                    // Создаем новый фиксированный контейнер
+                    const fixedContainer = document.createElement('div');
+                    fixedContainer.id = 'ios-fixed-input';
+                    fixedContainer.style.position = 'fixed';
+                    fixedContainer.style.bottom = '0';
+                    fixedContainer.style.left = '0';
+                    fixedContainer.style.right = '0';
+                    fixedContainer.style.backgroundColor = 'var(--bg-color)';
+                    fixedContainer.style.zIndex = '10000';
+                    fixedContainer.style.padding = '16px';
+                    fixedContainer.style.boxShadow = '0 -2px 10px rgba(0,0,0,0.1)';
+                    
+                    // Клонируем содержимое
+                    fixedContainer.appendChild(inputWrapper.cloneNode(true));
+                    if (inputInfo) {
+                        fixedContainer.appendChild(inputInfo.cloneNode(true));
+                    }
+                    
+                    // Добавляем на страницу
+                    document.body.appendChild(fixedContainer);
+                    
+                    // Скрываем оригинальный контейнер
+                    originalContainer.style.visibility = 'hidden';
+                    originalContainer.style.pointerEvents = 'none';
+                    
+                    // Настраиваем обработчики событий для нового textarea и кнопки
+                    const newInput = fixedContainer.querySelector('#message-input');
+                    const newButton = fixedContainer.querySelector('#send-button');
+                    
+                    // Синхронизируем значения
+                    newInput.value = document.querySelector('#message-input').value;
+                    
+                    // Обработчики событий
+                    newInput.addEventListener('input', function() {
+                        document.querySelector('#message-input').value = this.value;
+                        this.style.height = 'auto';
+                        this.style.height = (this.scrollHeight) + 'px';
+                    });
+                    
+                    newButton.addEventListener('click', function() {
+                        document.querySelector('#send-button').click();
+                    });
+                    
+                    return fixedContainer;
+                };
+                
                 // Отслеживаем изменение размера окна (открытие/закрытие клавиатуры)
                 window.addEventListener('resize', function() {
-                    const inputContainer = document.querySelector('.input-container');
-                    
                     // Если текущая высота меньше исходной, клавиатура открыта
                     if (window.innerHeight < originalWindowHeight * 0.75) {
-                        // Фиксируем инпут над клавиатурой
-                        inputContainer.style.position = 'fixed';
-                        inputContainer.style.bottom = '0';
-                        inputContainer.style.left = '0';
-                        inputContainer.style.right = '0';
-                        inputContainer.style.zIndex = '1000';
-                        inputContainer.style.backgroundColor = 'var(--bg-color)';
-                        
-                        // Добавляем отступ для контента, чтобы он не перекрывался инпутом
-                        document.querySelector('.chat-container').style.paddingBottom = 
-                            (inputContainer.offsetHeight + 20) + 'px';
+                        // Создаем фиксированный контейнер, если его еще нет
+                        if (!document.getElementById('ios-fixed-input')) {
+                            createFixedInputContainer();
+                        }
                     } else {
-                        // Возвращаем исходные стили при закрытии клавиатуры
-                        inputContainer.style.position = '';
-                        inputContainer.style.bottom = '';
-                        inputContainer.style.left = '';
-                        inputContainer.style.right = '';
-                        inputContainer.style.zIndex = '';
-                        inputContainer.style.backgroundColor = '';
-                        
-                        // Возвращаем исходный отступ
-                        document.querySelector('.chat-container').style.paddingBottom = '';
+                        // Удаляем фиксированный контейнер, если клавиатура закрыта
+                        const fixedContainer = document.getElementById('ios-fixed-input');
+                        if (fixedContainer) {
+                            // Возвращаем видимость оригинальному контейнеру
+                            const originalContainer = document.querySelector('.input-container');
+                            originalContainer.style.visibility = '';
+                            originalContainer.style.pointerEvents = '';
+                            
+                            // Удаляем фиксированный контейнер
+                            fixedContainer.remove();
+                        }
                     }
                 });
             }
@@ -1255,38 +1290,35 @@
                 const mobileNav = document.querySelector('.mobile-nav');
                 const inputContainer = document.querySelector('.input-container');
                 
-                // ваша логика позиционирования мобильной навигации
+                // Функция для обновления позиции мобильной навигации
                 function updateMobileNavPosition() {
-                    // …existing code…
-                }
-                // ваша логика обновления отступов контейнера ввода
-                function updateInputContainerPosition() {
-                    // …existing code…
-                }
-
-                // Делаем input-container fixed при появлении клавиатуры
-                window.visualViewport.addEventListener('resize', () => {
-                    const vh = window.visualViewport.height;
-                    if (vh < window.screen.height * 0.5) {
-                        // клавиатура открыта
-                        inputContainer.style.position = 'fixed';
-                        inputContainer.style.bottom = '0';
-                    } else {
-                        // клавиатура закрыта
-                        inputContainer.style.position = '';
-                        inputContainer.style.bottom = '';
+                    if (window.matchMedia("(max-width: 768px)").matches) {
+                        mobileNav.style.top = `${window.visualViewport.offsetTop}px`;
                     }
-                    // обновляем позицию шапки и отступы
+                }
+                
+                // Функция для обновления позиции контейнера ввода
+                function updateInputContainerPosition() {
+                    if (window.matchMedia("(max-width: 768px)").matches && !isIOS) {
+                        const offsetBottom = window.innerHeight - (window.visualViewport.height + window.visualViewport.offsetTop);
+                        inputContainer.style.bottom = `${offsetBottom}px`;
+                    } else {
+                        inputContainer.style.bottom = '0';
+                    }
+                }
+                
+                // Обработчики событий для Visual Viewport API
+                window.visualViewport.addEventListener('resize', () => {
                     updateMobileNavPosition();
                     updateInputContainerPosition();
                 });
-
+                
                 window.visualViewport.addEventListener('scroll', () => {
                     updateMobileNavPosition();
                     updateInputContainerPosition();
                 });
-
-                // Инициализация при загрузке
+                
+                // Инициализация позиций
                 updateMobileNavPosition();
                 updateInputContainerPosition();
             }
