@@ -1500,24 +1500,24 @@
                 deferUpdateAfterVisibilityChange();
             });
 
-            // Важно: вызывается после смены чата, если до этого был переход из background
+            // 🔧 Важно: вызывается из loadChat() после смены чата
             window.fixKeyboardAfterChatChange = () => {
                 if (wasBackgroundReturn) {
                 const messageInput = document.getElementById('message-input');
                 if (!messageInput) return;
 
-                requestAnimationFrame(() => {
+                setTimeout(() => {
                     requestAnimationFrame(() => {
                     messageInput.blur();
                     messageInput.focus();
                     updateOnKeyboardChange();
                     wasBackgroundReturn = false;
                     });
-                });
+                }, 150); // увеличенная задержка для iOS
                 }
             };
 
-            // Запуск при первом открытии
+            // ⏩ Инициализация
             updateOnKeyboardChange();
             }
 
