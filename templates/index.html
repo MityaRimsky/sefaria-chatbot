@@ -511,8 +511,8 @@
             z-index: 9999;
         }
         
-        /* Стили для фиксированного инпута на iOS */
-        .input-container.ios-keyboard-open {
+        /* Стили для инпута, перемещенного в body */
+        .input-container.moved-to-body {
             position: fixed !important;
             bottom: 0 !important;
             left: 0 !important;
@@ -1231,25 +1231,74 @@
                 updateInputContainerPosition();
             }
             
-            // Только для iOS устройств - фиксация инпута
+            // Только для iOS устройств - перемещение инпута в DOM
             if (isIOS) {
                 // Получаем элементы
                 const messageInput = document.getElementById('message-input');
                 const inputContainer = document.querySelector('.input-container');
+                const mainContent = document.querySelector('.main-content');
                 
-                // Сохраняем исходную высоту окна
-                const originalWindowHeight = window.innerHeight;
+                // Сохраняем оригинальную структуру DOM
+                let originalParent = inputContainer.parentNode;
+                let originalNextSibling = inputContainer.nextSibling;
+                let isInputMoved = false;
+                
+                // Функция для перемещения инпута в body
+                function moveInputToBody() {
+                    if (isInputMoved) return; // Предотвращаем повторное перемещение
+                    
+                    // Удаляем инпут из текущего родителя
+                    if (inputContainer.parentNode) {
+                        originalParent = inputContainer.parentNode;
+                        originalNextSibling = inputContainer.nextSibling;
+                        originalParent.removeChild(inputContainer);
+                    }
+                    
+                    // Добавляем класс для стилей
+                    inputContainer.classList.add('moved-to-body');
+                    
+                    // Добавляем инпут в конец body
+                    document.body.appendChild(inputContainer);
+                    
+                    // Отмечаем, что инпут перемещен
+                    isInputMoved = true;
+                    
+                    // Прокручиваем к инпуту
+                    setTimeout(() => {
+                        messageInput.scrollIntoView(false);
+                    }, 100);
+                }
+                
+                // Функция для возврата инпута на оригинальную позицию
+                function restoreInputPosition() {
+                    if (!isInputMoved) return; // Предотвращаем повторное восстановление
+                    
+                    // Удаляем инпут из body
+                    if (inputContainer.parentNode === document.body) {
+                        document.body.removeChild(inputContainer);
+                    }
+                    
+                    // Удаляем класс для стилей
+                    inputContainer.classList.remove('moved-to-body');
+                    
+                    // Возвращаем инпут на оригинальную позицию
+                    if (originalParent) {
+                        if (originalNextSibling) {
+                            originalParent.insertBefore(inputContainer, originalNextSibling);
+                        } else {
+                            originalParent.appendChild(inputContainer);
+                        }
+                    }
+                    
+                    // Отмечаем, что инпут возвращен
+                    isInputMoved = false;
+                }
                 
                 // Обработчик фокуса на инпуте
                 messageInput.addEventListener('focus', function() {
-                    // Добавляем класс с задержкой, чтобы дать клавиатуре время открыться
+                    // Перемещаем инпут в body с задержкой
                     setTimeout(() => {
-                        inputContainer.classList.add('ios-keyboard-open');
-                        
-                        // Прокручиваем к инпуту
-                        setTimeout(() => {
-                            messageInput.scrollIntoView(false);
-                        }, 100);
+                        moveInputToBody();
                     }, 300);
                 });
                 
@@ -1259,7 +1308,7 @@
                     setTimeout(() => {
                         // Проверяем, не переместился ли фокус на кнопку отправки
                         if (document.activeElement !== document.getElementById('send-button')) {
-                            inputContainer.classList.remove('ios-keyboard-open');
+                            restoreInputPosition();
                         }
                     }, 100);
                 });
@@ -1267,7 +1316,7 @@
                 // Обработчик нажатия на кнопку отправки
                 document.getElementById('send-button').addEventListener('click', function() {
                     setTimeout(() => {
-                        inputContainer.classList.remove('ios-keyboard-open');
+                        restoreInputPosition();
                     }, 100);
                 });
             }
