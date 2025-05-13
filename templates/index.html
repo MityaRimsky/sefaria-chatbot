@@ -1451,11 +1451,13 @@
                 const keyboardHeight = window.innerHeight - window.visualViewport.height;
 
                 if (keyboardHeight > 150) {
+                // Клавиатура открыта
                 inputContainer.style.position = 'absolute';
                 inputContainer.style.bottom = `${keyboardHeight}px`;
                 mainContent.style.overflow = 'hidden';
                 mainContent.scrollTop = mainContent.scrollHeight;
                 } else {
+                // Клавиатура закрыта
                 inputContainer.style.position = 'fixed';
                 inputContainer.style.bottom = '0';
                 mainContent.style.overflowY = 'auto';
@@ -1498,10 +1500,16 @@
                 deferUpdateAfterVisibilityChange();
             });
 
+            // Важно: вызывается после смены чата, если до этого был переход из background
             window.fixKeyboardAfterChatChange = () => {
                 if (wasBackgroundReturn) {
+                const messageInput = document.getElementById('message-input');
+                if (!messageInput) return;
+
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
+                    messageInput.blur();
+                    messageInput.focus();
                     updateOnKeyboardChange();
                     wasBackgroundReturn = false;
                     });
@@ -1509,6 +1517,7 @@
                 }
             };
 
+            // Запуск при первом открытии
             updateOnKeyboardChange();
             }
 
