@@ -169,6 +169,123 @@ const chatService = (function() {
         }
     }
     
+    // Получение оценки для последнего сообщения бота в сессии
+    async function getLastBotMessageFeedback(sessionId) {
+        try {
+            // Получаем последнее сообщение бота в сессии
+            const { data: messages, error: messagesError } = await window.supabaseClient
+                .from('chat_messages')
+                .select('*')
+                .eq('session_id', sessionId)
+                .eq('sender', 'bot')
+                .order('timestamp', { ascending: false })
+                .limit(1);
+                
+            if (messagesError) throw messagesError;
+            if (!messages || messages.length === 0) return null;
+            
+            const lastBotMessage = messages[0];
+            
+            // Получаем текущего пользователя
+            const { data: authData, error: authError } = await window.supabaseClient.auth.getUser();
+            if (authError) throw authError;
+            if (!authData || !authData.user) throw new Error('Пользователь не авторизован');
+            
+            const userId = authData.user.id;
+            
+            // Получаем оценку для этого сообщения
+            const { data: feedback, error: feedbackError } = await window.supabaseClient
+                .from('message_feedback')
+                .select('*')
+                .eq('message_id', lastBotMessage.id)
+                .eq('user_id', userId)
+                .maybeSingle();
+                
+            if (feedbackError) throw feedbackError;
+            
+            return { message: lastBotMessage, feedback };
+        } catch (error) {
+            console.error('Ошибка при получении оценки:', error);
+            return null;
+        }
+    }
+    
+    // Добавление/обновление оценки для сообщения
+    async function addMessageFeedback(messageId, feedbackValue) {
+        try {
+            // Получаем текущего пользователя
+            const { data: authData, error: authError } = await window.supabaseClient.auth.getUser();
+            if (authError) throw authError;
+            if (!authData || !authData.user) throw new Error('Пользователь не авторизован');
+            
+            const userId = authData.user.id;
+            
+            // Проверяем, существует ли уже оценка
+            const { data: existingFeedback, error: existingError } = await window.supabaseClient
+                .from('message_feedback')
+                .select('*')
+                .eq('message_id', messageId)
+                .eq('user_id', userId)
+                .maybeSingle();
+                
+            if (existingError) throw existingError;
+            
+            if (existingFeedback) {
+                // Обновляем существующую оценку
+                const { data, error } = await window.supabaseClient
+                    .from('message_feedback')
+                    .update({ feedback: feedbackValue })
+                    .eq('id', existingFeedback.id)
+                    .select()
+                    .single();
+                    
+                if (error) throw error;
+                return data;
+            } else {
+                // Создаем новую оценку
+                const { data, error } = await window.supabaseClient
+                    .from('message_feedback')
+                    .insert([{
+                        message_id: messageId,
+                        user_id: userId,
+                        feedback: feedbackValue
+                    }])
+                    .select()
+                    .single();
+                    
+                if (error) throw error;
+                return data;
+            }
+        } catch (error) {
+            console.error('Ошибка при добавлении оценки:', error);
+            return null;
+        }
+    }
+    
+    // Удаление оценки для сообщения
+    async function removeMessageFeedback(messageId) {
+        try {
+            // Получаем текущего пользователя
+            const { data: authData, error: authError } = await window.supabaseClient.auth.getUser();
+            if (authError) throw authError;
+            if (!authData || !authData.user) throw new Error('Пользователь не авторизован');
+            
+            const userId = authData.user.id;
+            
+            const { error } = await window.supabaseClient
+                .from('message_feedback')
+                .delete()
+                .eq('message_id', messageId)
+                .eq('user_id', userId);
+                
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            console.error('Ошибка при удалении оценки:', error);
+            return false;
+        }
+    }
+    
     return {
         init,
         getChatSessions,
@@ -176,7 +293,10 @@ const chatService = (function() {
         updateChatSession,
         getChatMessages,
         addChatMessage,
-        deleteChatSession
+        deleteChatSession,
+        getLastBotMessageFeedback,
+        addMessageFeedback,
+        removeMessageFeedback
     };
 })();
 

@@ -892,6 +892,11 @@
             color: var(--primary-color);
         }
         
+        .action-icon.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
         .copy-notification {
             position: fixed;
             bottom: 20px;
@@ -1627,20 +1632,26 @@
                     const data = await response.json();
                     
                     if (response.ok) {
-                        // Добавляем ответ бота в чат с эффектом печатания и трансформацией индикатора
-                        await addMessageToUI(data.response, false, true, true);
-                        
                         // Сохраняем сообщение в БД
                         if (currentSessionId) {
                             try {
-                                await window.chatService.addChatMessage(
+                                const botMessage = await window.chatService.addChatMessage(
                                     currentSessionId, 
                                     data.response, 
                                     false
                                 );
+                                
+                                // Добавляем ответ бота в чат с эффектом печатания и трансформацией индикатора
+                                // Передаем ID сообщения для сохранения оценок
+                                await addMessageToUI(data.response, false, true, true, botMessage.id);
                             } catch (error) {
                                 console.error('Ошибка при сохранении сообщения бота:', error);
+                                // Если не удалось сохранить сообщение, добавляем его в UI без ID
+                                await addMessageToUI(data.response, false, true, true);
                             }
+                        } else {
+                            // Если нет активной сессии, просто добавляем сообщение в UI
+                            await addMessageToUI(data.response, false, true, true);
                         }
                         
                         // Обновляем список чатов (название может измениться)
@@ -1668,6 +1679,72 @@
                 }
             }
             
+            // Функция для обработки клика по иконке оценки
+            async function handleFeedback(messageId, value, button) {
+                try {
+                    // Получаем текущую оценку
+                    const { data: currentFeedback } = await window.supabaseClient
+                        .from('message_feedback')
+                        .select('*')
+                        .eq('message_id', messageId)
+                        .eq('user_id', (await window.supabaseClient.auth.getUser()).data.user.id)
+                        .maybeSingle();
+                    
+                    // Получаем все кнопки оценок
+                    const likeButton = document.querySelector('.like-icon');
+                    const dislikeButton = document.querySelector('.dislike-icon');
+                    
+                    // Сбрасываем подсветку всех кнопок
+                    likeButton.classList.remove('active');
+                    dislikeButton.classList.remove('active');
+                    
+                    if (currentFeedback && currentFeedback.feedback === value) {
+                        // Если текущая оценка совпадает с новой, удаляем оценку
+                        await window.chatService.removeMessageFeedback(messageId);
+                    } else {
+                        // Иначе добавляем/обновляем оценку
+                        await window.chatService.addMessageFeedback(messageId, value);
+                        
+                        // Подсвечиваем выбранную кнопку
+                        button.classList.add('active');
+                    }
+                } catch (error) {
+                    console.error('Ошибка при обработке оценки:', error);
+                }
+            }
+            
+            // Функция для загрузки текущей оценки и обновления UI
+            async function loadCurrentFeedback(messageId) {
+                try {
+                    const { data: authData } = await window.supabaseClient.auth.getUser();
+                    if (!authData || !authData.user) return;
+                    
+                    const userId = authData.user.id;
+                    
+                    // Получаем текущую оценку
+                    const { data: feedback } = await window.supabaseClient
+                        .from('message_feedback')
+                        .select('*')
+                        .eq('message_id', messageId)
+                        .eq('user_id', userId)
+                        .maybeSingle();
+                    
+                    if (!feedback) return;
+                    
+                    // Подсвечиваем соответствующую кнопку
+                    const actionsContainer = document.querySelector('.message-actions');
+                    if (!actionsContainer) return;
+                    
+                    if (feedback.feedback === 1) {
+                        actionsContainer.querySelector('.like-icon')?.classList.add('active');
+                    } else if (feedback.feedback === -1) {
+                        actionsContainer.querySelector('.dislike-icon')?.classList.add('active');
+                    }
+                } catch (error) {
+                    console.error('Ошибка при загрузке оценки:', error);
+                }
+            }
+            
             // Функция для добавления иконок действий к последнему сообщению
             function addActionIcons() {
                 // Удаляем существующие иконки действий, если они есть
@@ -1688,32 +1765,68 @@
                 // Позиционируем контейнер в зависимости от типа сообщения
                 if (isUser) {
                     actionsContainer.classList.add('right-aligned');
+                    
+                    // Для сообщений пользователя оставляем существующие иконки
+                    actionsContainer.innerHTML = `
+                        <button class="action-icon copy-icon" title="${window.i18nModule.t('copy.button', 'Копировать сообщение')}">
+                            <i class="fas fa-clone"></i>
+                        </button>
+                        <button class="action-icon regenerate-icon" data-message-type="${isUser ? 'user' : 'bot'}" title="${window.i18nModule.t('regenerate.button', 'Сгенерировать ответ заново')}">
+                            <i class="fas fa-sync"></i>
+                        </button>
+                    `;
                 } else {
                     actionsContainer.classList.add('left-aligned');
+                    
+                    // Для сообщений бота добавляем 4 иконки: копирование, перегенерация, лайк и дизлайк
+                    actionsContainer.innerHTML = `
+                        <button class="action-icon copy-icon" title="${window.i18nModule.t('copy.button', 'Копировать сообщение')}">
+                            <i class="fas fa-clone"></i>
+                        </button>
+                        <button class="action-icon regenerate-icon" data-message-type="${isUser ? 'user' : 'bot'}" title="${window.i18nModule.t('regenerate.button', 'Сгенерировать ответ заново')}">
+                            <i class="fas fa-sync"></i>
+                        </button>
+                        <button class="action-icon like-icon" title="Нравится">
+                            <i class="fas fa-thumbs-up"></i>
+                        </button>
+                        <button class="action-icon dislike-icon" title="Не нравится">
+                            <i class="fas fa-thumbs-down"></i>
+                        </button>
+                    `;
                 }
-                
-                // Добавляем иконки
-                actionsContainer.innerHTML = `
-                    <button class="action-icon copy-icon" title="${window.i18nModule.t('copy.button', 'Копировать сообщение')}">
-                        <i class="fas fa-clone"></i>
-                    </button>
-                    <button class="action-icon regenerate-icon" data-message-type="${isUser ? 'user' : 'bot'}" title="${window.i18nModule.t('regenerate.button', 'Сгенерировать ответ заново')}">
-                        <i class="fas fa-sync"></i>
-                    </button>
-                `;
                 
                 // Добавляем контейнер после последнего сообщения
                 lastMessage.insertAdjacentElement('afterend', actionsContainer);
                 
-                // Добавляем обработчики событий
+                // Добавляем обработчики событий для существующих иконок
                 actionsContainer.querySelector('.copy-icon').addEventListener('click', copyLastMessage);
                 actionsContainer.querySelector('.regenerate-icon').addEventListener('click', function() {
                     regenerateResponse(this.getAttribute('data-message-type'));
                 });
+                
+                // Добавляем обработчики для новых иконок только если это сообщение бота
+                if (!isUser) {
+                    // Получаем ID последнего сообщения бота
+                    const lastBotMessageId = lastMessage.dataset.messageId;
+                    
+                    if (lastBotMessageId) {
+                        // Добавляем обработчики для лайка и дизлайка
+                        actionsContainer.querySelector('.like-icon').addEventListener('click', function() {
+                            handleFeedback(lastBotMessageId, 1, this);
+                        });
+                        
+                        actionsContainer.querySelector('.dislike-icon').addEventListener('click', function() {
+                            handleFeedback(lastBotMessageId, -1, this);
+                        });
+                        
+                        // Загружаем текущую оценку и обновляем UI
+                        loadCurrentFeedback(lastBotMessageId);
+                    }
+                }
             }
             
             // Функция для добавления сообщения в UI (без сохранения в БД)
-            async function addMessageToUI(message, isUser, useTypingEffect = false, transformIndicator = false) {
+            async function addMessageToUI(message, isUser, useTypingEffect = false, transformIndicator = false, messageId = null) {
                 // Удаляем приветственное сообщение при добавлении первого сообщения
                 const welcomeMessage = document.getElementById('welcome-message');
                 if (welcomeMessage) {
@@ -1727,6 +1840,12 @@
                     
                     // Если трансформация прошла успешно, не создаем новый элемент
                     if (transformed) {
+                        // Получаем последнее сообщение бота для добавления data-message-id
+                        const lastBotMessage = getLastMessageElement();
+                        if (lastBotMessage && !isUser && messageId) {
+                            lastBotMessage.dataset.messageId = messageId;
+                        }
+                        
                         // Прокрутка вниз после добавления сообщения
                         scrollChatToBottom();
                         return;
@@ -1737,6 +1856,11 @@
                 const messageRow = document.createElement('div');
                 messageRow.classList.add('message-row');
                 messageRow.classList.add(isUser ? 'user' : 'bot');
+                
+                // Добавляем data-message-id для сообщений бота
+                if (!isUser && messageId) {
+                    messageRow.dataset.messageId = messageId;
+                }
                 
                 let html = '';
                 
@@ -2157,20 +2281,26 @@
                     const data = await response.json();
                     
                     if (response.ok) {
-                        // Добавляем ответ бота в чат с эффектом печатания и трансформацией индикатора
-                        await addMessageToUI(data.response, false, true, true);
-                        
                         // Сохраняем сообщение в БД
                         if (currentSessionId) {
                             try {
-                                await window.chatService.addChatMessage(
+                                const botMessage = await window.chatService.addChatMessage(
                                     currentSessionId, 
                                     data.response, 
                                     false
                                 );
+                                
+                                // Добавляем ответ бота в чат с эффектом печатания и трансформацией индикатора
+                                // Передаем ID сообщения для сохранения оценок
+                                await addMessageToUI(data.response, false, true, true, botMessage.id);
                             } catch (error) {
                                 console.error('Ошибка при сохранении сообщения бота:', error);
+                                // Если не удалось сохранить сообщение, добавляем его в UI без ID
+                                await addMessageToUI(data.response, false, true, true);
                             }
+                        } else {
+                            // Если нет активной сессии, просто добавляем сообщение в UI
+                            await addMessageToUI(data.response, false, true, true);
                         }
                         
                         // Обновляем список чатов (название может измениться)
