@@ -131,14 +131,14 @@ function updateUIForAuthenticatedUser() {
         profileEmail.textContent = currentUser.email || window.i18nModule.t('auth.noEmail', 'Нет email');
     }
     
-    // Обновляем email в сайдбаре (десктоп)
+    // Обновляем текст в сайдбаре (десктоп) - используем "Профиль" вместо email
     if (sidebarEmail) {
-        sidebarEmail.textContent = currentUser.email || window.i18nModule.t('auth.noEmail', 'Нет email');
+        sidebarEmail.textContent = window.i18nModule.t('profile.title', 'Профиль');
     }
     
-    // Обновляем email в сайдбаре (мобильный)
+    // Обновляем текст в сайдбаре (мобильный) - используем "Профиль" вместо email
     if (mobileSidebarEmail) {
-        mobileSidebarEmail.textContent = currentUser.email || window.i18nModule.t('auth.noEmail', 'Нет email');
+        mobileSidebarEmail.textContent = window.i18nModule.t('profile.title', 'Профиль');
     }
     
     // Устанавливаем аватар пользователя
@@ -159,14 +159,14 @@ function updateUIForAuthenticatedUser() {
 
 // Обновление UI для неавторизованного пользователя
 function updateUIForUnauthenticatedUser() {
-    // Обновляем текст в сайдбаре (десктоп)
+    // Обновляем текст в сайдбаре (десктоп) - используем "Профиль" вместо "Войти"
     if (sidebarEmail) {
-        sidebarEmail.textContent = window.i18nModule.t('auth.login', 'Войти');
+        sidebarEmail.textContent = window.i18nModule.t('profile.title', 'Профиль');
     }
     
-    // Обновляем текст в сайдбаре (мобильный)
+    // Обновляем текст в сайдбаре (мобильный) - используем "Профиль" вместо "Войти"
     if (mobileSidebarEmail) {
-        mobileSidebarEmail.textContent = window.i18nModule.t('auth.login', 'Войти');
+        mobileSidebarEmail.textContent = window.i18nModule.t('profile.title', 'Профиль');
     }
     
     // Устанавливаем аватар по умолчанию
