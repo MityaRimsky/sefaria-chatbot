@@ -152,6 +152,11 @@ def about():
     # Страница о проекте
     return render_template('about.html')
 
+@app.route('/howto')
+def howto():
+    # Страница "Как пользоваться"
+    return render_template('howto.html')
+
 @app.route('/api/chat', methods=['POST'])
 @auth_required
 def chat():

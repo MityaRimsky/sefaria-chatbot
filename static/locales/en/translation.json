@@ -99,6 +99,41 @@
     "contactInfo": "Email for contact, suggestions, and information about errors: info@shuva.ai",
     "portraitAlt": "Portrait"
   },
+  "howto": {
+    "title": "How to Use",
+    "back": "Back",
+    "intro": {
+      "part1": "The SHUVA chatbot is an agent that uses an advanced Large Language Model to interact with the Sefaria library of Jewish texts.",
+      "part2": "The bot's scope is intentionally limited to improve the quality of answers and reduce the influence of secondary data from open sources on the web.",
+      "part3": "It's important to remember that despite the similarity of the bot's answers to human responses, these answers are based on mathematical algorithms that select the most relevant options from those available.",
+      "part4": "This fact makes the quality of the answer directly dependent on how well the question is understood by the bot.",
+      "part5": "The bot also has the context and memory functions of previous answers disabled. During testing, the use of these functions led to degradation of model behavior and hallucinations when giving answers.",
+      "part6": "Currently, the bot is in a testing period, searching for the best models and fine-tuning. Agent functions related to the use of calendars and time parameters are also being tested in the telegram bot ",
+      "part7": " ."
+    },
+    "recommendations": {
+      "title": "Recommendations for Formulating Queries",
+      "clarity": {
+        "title": "Formulate Questions in Complete Sentences",
+        "text": "Avoid using abbreviations, jargon, figurative language, rare acronyms, transliteration of foreign words, etc.",
+        "badExample": "Example of a poor query: \"Yo, check what to do for New Year?\"",
+        "goodExample": "Example of a good query: \"What are the traditions and customs of Rosh Hashanah?\"" 
+      },
+      "specificity": {
+        "title": "Specify the Search Area",
+        "text": "If specific search parameters are not set in the query, the answer will likely be general or based on the most frequent mentions.",
+        "badExample": "Example of a poor query: \"What is the Shema text?\"",
+        "goodExample": "Example of a good query: \"Write the text of the Shema Israel prayer as recorded in the Chabad prayer book?\""
+      },
+      "personalization": {
+        "title": "Personalize Your Query",
+        "text": "Help the bot understand why and for whom you are looking for information. Start your query with an explanation: \"I'm preparing a lesson plan for women...\", \"I'm planning a game for 6-year-old children...\", \"I'm preparing a speech for synagogue congregants on Shabbat...\".",
+        "badExample": "Example of a poor query: \"Write a summary of Vayikra?\"",
+        "goodExample": "Example of a good query: \"Help me create a lesson plan for women on the weekly Torah portion of Vayikra with commentaries from the Lubavitcher Rebbe?\""
+      }
+    },
+    "contactInfo": "We invite you to test the bot. You can send your observations, comments, and recommendations to: info@shuva.ai"
+  },
   "privacy": {
     "title": "Privacy Policy",
     "back": "Back",

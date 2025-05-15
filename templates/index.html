@@ -1130,6 +1130,17 @@
                     </div>
                 </div>
                 
+                <!-- Блок "Как пользоваться" -->
+                <div class="profile-item" id="howto-link">
+                    <div class="profile-item-left">
+                        <i class="fas fa-question-circle"></i>
+                        <span data-i18n="howto.title">Как пользоваться?</span>
+                    </div>
+                    <div class="profile-item-right">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+                
                 <!-- Блок политики конфиденциальности -->
                 <div class="profile-item" id="privacy-policy-link">
                     <div class="profile-item-left">
@@ -2422,6 +2433,12 @@
             const aboutProjectLink = document.getElementById('about-project-link');
             aboutProjectLink.addEventListener('click', function() {
                 window.location.href = '/about';
+            });
+            
+            // Обработчик для перехода на страницу "Как пользоваться"
+            const howtoLink = document.getElementById('howto-link');
+            howtoLink.addEventListener('click', function() {
+                window.location.href = '/howto';
             });
             
             // Обработчик для перехода на страницу политики конфиденциальности

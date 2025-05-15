@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, height=device-height">
+    <title>SHUVA - Как пользоваться</title>
+    <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg">
+    <link rel="apple-touch-icon" href="/static/images/logo-apple-touch.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@200;300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/auth.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/static/js/auth.js"></script>
+    <style>
+        :root {
+            --primary-color: #007FE7;
+            --sidebar-bg: #fbfcff;
+            --sidebar-hover: #f3f6ff;
+            --text-color: #333;
+            --text-light: #727272;
+            --bg-color: #fff;
+            --border-color: #e0e0e0;
+            --border-radius: 32px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Golos Text', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Стили для фиксированного хедера */
+        .fixed-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--bg-color);
+            z-index: 1000;
+        }
+        
+        .header-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        
+        /* Обновленные стили для контейнера, чтобы добавить отступ сверху */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            padding-top: 5rem; /* Отступ для фиксированного хедера */
+            width: 100%;
+            flex: 1;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .back-button {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            transition: background-color 0.2s;
+            text-decoration: none;
+        }
+        
+        .back-button:hover {
+            background-color: var(--sidebar-hover);
+        }
+        
+        /* Стили для переключателя языка */
+        .language-switcher {
+            display: flex;
+            gap: 0.4rem;
+        }
+        
+        .language-option {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        
+        .language-option.active {
+            border-color: var(--primary-color);
+        }
+        
+        /* Стили для круглых иконок языков */
+        .lang-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: var(--sidebar-hover);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            line-height: 1.2;
+            font-weight: 500;
+            text-transform: lowercase;
+            color: var(--text-color);
+        }
+        
+        .language-option.active .lang-circle {
+            border-color: var(--primary-color);
+            border-width: 1px;
+        }
+        
+        .title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            flex: 1;
+        }
+        
+        .content {
+            line-height: 1.6;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 500;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+        
+        .subsection {
+            margin-bottom: 20px;
+        }
+        
+        .subsection-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        
+        .example-box {
+            background-color: var(--sidebar-hover);
+            border-left: 3px solid var(--primary-color);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        
+        .bad-example {
+            border-left-color: #e74c3c;
+        }
+        
+        .good-example {
+            border-left-color: #2ecc71;
+        }
+        
+        .contact-info {
+            margin-top: 40px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        /* Стили для отступов между параграфами */
+        .section p {
+            margin-bottom: 20px; /* Отступ между параграфами */
+        }
+        
+        .section p:last-child {
+            margin-bottom: 0; /* Убираем отступ у последнего параграфа в секции */
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header {
+                margin-bottom: 20px;
+            }
+            
+            .title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Фиксированный хедер -->
+    <div class="fixed-header">
+        <div class="header-container">
+            <a href="/" class="back-button">
+                <i class="fas fa-arrow-left"></i>
+                <span data-i18n="howto.back">Назад</span>
+            </a>
+            <div class="language-switcher">
+                <div class="language-option" data-lang="ru">
+                    <span class="lang-circle">ru</span>
+                </div>
+                <div class="language-option" data-lang="en">
+                    <span class="lang-circle">en</span>
+                </div>
+                <div class="language-option" data-lang="he">
+                    <span class="lang-circle">he</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="title" data-i18n="howto.title">Как пользоваться?</h1>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <p data-i18n="howto.intro.part1">Чат-бот SHUVA является агентом, использующим продвинутую Большую Языковую Модель для взаимодействия с библиотеки еврейских текстов Sefaria.</p>
+                <p data-i18n="howto.intro.part2">Область обращения бота намерено ограничена для повышения качества ответов и снижения влияния второстепенных данных из открытых источников в сети.</p>
+                <p data-i18n="howto.intro.part3">Важно помнить, что при всей схожести ответов бота с ответами человека, в основе этих ответов лежат математические алгоритмы выбора наиболее релевантного из возможных.</p>
+                <p data-i18n="howto.intro.part4">Этот факт ставит в прямую зависимость качество ответа от того, на сколько вопрос понятен для бота.</p>
+                <p data-i18n="howto.intro.part5">Также в боте отключена функция контекста и памяти предыдущего ответа. При тестировании использование данных функций приводило к деградации поведения модели и галлюционированию при даче ответов.</p>
+                <p>
+                    <span data-i18n="howto.intro.part6">В данный момент бот находится в периоде тестирования, поиска наилучших моделей и тонкой настройки. Также в telegram-боте</span>
+                    <a href="https://t.me/shuva_chatbot" target="_blank" class="telegram-link" style="color: var(--primary-color); text-decoration: underline;">https://t.me/shuva_chatbot</a>
+                    <span data-i18n="howto.intro.part7">проходят апробацию агентские функции, связанные с использованием календарей и параметров времени.</span>
+                </p>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title" data-i18n="howto.recommendations.title">Рекомендации по составлению запросов</h2>
+                
+                <div class="subsection">
+                    <h3 class="subsection-title" data-i18n="howto.recommendations.clarity.title">Формулируйте вопрос полными предложениями</h3>
+                    <p data-i18n="howto.recommendations.clarity.text">Не используйте сокращения, жаргон, иносказания, редкие аббревиатуры, транслитерацию иностранных слов и т.п.</p>
+                    
+                    <div class="example-box bad-example">
+                        <strong data-i18n="howto.recommendations.clarity.badExample">Пример плохого запроса: «Бро, чекни че делать на Новый год?»</strong>
+                    </div>
+                    
+                    <div class="example-box good-example">
+                        <strong data-i18n="howto.recommendations.clarity.goodExample">Пример хорошего запроса: «Какие традиции и обычаи праздника Рош аШана?»</strong>
+                    </div>
+                </div>
+                
+                <div class="subsection">
+                    <h3 class="subsection-title" data-i18n="howto.recommendations.specificity.title">Конкретизируйте область поиска</h3>
+                    <p data-i18n="howto.recommendations.specificity.text">Если при запросе не были заданы конкретные параметры поиска, то ответ скорее всего будет общим или базирующимся на наиболее частых упоминаниях.</p>
+                    
+                    <div class="example-box bad-example">
+                        <strong data-i18n="howto.recommendations.specificity.badExample">Пример плохого запроса: «Какой текст Шма?»</strong>
+                    </div>
+                    
+                    <div class="example-box good-example">
+                        <strong data-i18n="howto.recommendations.specificity.goodExample">Пример хорошего запроса: «Напиши текст молитвы Шма Исраэль, как он записан в молитвеннике ХаБаД?»</strong>
+                    </div>
+                </div>
+                
+                <div class="subsection">
+                    <h3 class="subsection-title" data-i18n="howto.recommendations.personalization.title">Персонализируйте запрос</h3>
+                    <p data-i18n="howto.recommendations.personalization.text">Помогите боту понять для чего и для кого Вы ищите информацию. Начните запрос с пояснения: «составляю план урока для женщин…», «планирую игру для детей 6 лет…», «готовлю речь для прихожан синагоги на Шаббат…».</p>
+                    
+                    <div class="example-box bad-example">
+                        <strong data-i18n="howto.recommendations.personalization.badExample">Пример плохого запроса: «Напиши краткое содержание Ваикра?»</strong>
+                    </div>
+                    
+                    <div class="example-box good-example">
+                        <strong data-i18n="howto.recommendations.personalization.goodExample">Пример хорошего запроса: «Помоги составить план урока для женщин по недельной главе Торы Ваикра с комментариями Любавичского Ребе?»</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="contact-info">
+                <p data-i18n="howto.contactInfo">Приглашаем Вас к тестированию бота. Свои наблюдения, замечания и рекомендации Вы можете направлять на почту: info@shuva.ai</p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/i18n.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Инициализируем модуль i18n
+            await window.i18nModule.initI18n();
+            
+            // Получаем текущий язык
+            const currentLang = i18next.language;
+            
+            // Отмечаем активный язык
+            document.querySelector(`.language-option[data-lang="${currentLang}"]`).classList.add('active');
+            
+            // Добавляем обработчики для переключателя языка
+            document.querySelectorAll('.language-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const lang = this.dataset.lang;
+                    
+                    // Убираем класс active у всех опций
+                    document.querySelectorAll('.language-option').forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+                    
+                    // Добавляем класс active к выбранной опции
+                    this.classList.add('active');
+                    
+                    // Меняем язык
+                    window.i18nModule.changeLanguage(lang);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
