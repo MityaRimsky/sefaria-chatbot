@@ -77,22 +77,16 @@
         }
         
         .back-button {
-            background: none;
-            border: none;
-            color: var(--primary-color);
-            font-size: 1rem;
-            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 5px;
-            padding: 5px 10px;
-            border-radius: 20px;
-            transition: background-color 0.2s;
+            gap: 0.5rem;
+            color: var(--primary-color);
             text-decoration: none;
+            font-weight: 500;
         }
         
         .back-button:hover {
-            background-color: var(--sidebar-hover);
+            text-decoration: underline;
         }
         
         /* Стили для переключателя языка */
@@ -202,6 +196,10 @@
             .container {
                 padding: 15px;
                 padding-top: 5rem; /* Добавляем отступ для фиксированного хедера */
+            }
+            
+            .header-container {
+                padding: 1rem 15px; /* Уменьшаем боковые отступы для мобильной версии */
             }
             
             .header {
