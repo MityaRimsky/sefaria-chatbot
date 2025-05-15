@@ -94,8 +94,9 @@
     "title": "About the Project",
     "back": "Back",
     "paragraph1": "This project was created in honor of the elevation of the soul of Lyubavsky Itzhok son of Abraham, our dear father, father-in-law, and grandfather. May his soul rest in the Garden of Eden, and may his pursuit of knowledge of the Almighty's wisdom be an example for all of us.",
-    "paragraph2": "We thank the Sefaria and HebCal projects for providing free access to their APIs. May the Almighty's blessing be upon all your endeavors and your families!",
+    "paragraph2": "We thank the Sefaria project for providing free access to their knowledge base. May the Almighty's blessing be upon all your endeavors and your families!",
     "paragraph3": "We also thank the Taiga Performance project for their assistance in implementing the software part of the project.",
+    "paragraph4": "SHUVA is also available on Telegram: https://t.me/shuva_chatbot",
     "contactInfo": "Email for contact, suggestions, and information about errors: info@shuva.ai",
     "portraitAlt": "Portrait"
   },
