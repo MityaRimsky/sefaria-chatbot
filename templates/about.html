@@ -46,13 +46,13 @@
         .header {
             display: flex;
             align-items: center;
-            margin-bottom: 2rem;
-            justify-content: space-between;
+            margin-bottom: 30px;
         }
         
-        .header h1 {
+        .title {
             font-size: 1.8rem;
             font-weight: 600;
+            flex: 1;
         }
         
         .back-button {
@@ -223,6 +223,24 @@
                 order: 1; /* Отображаем текст вторым */
             }
         }
+        
+        /* Стили для текста на иврите */
+        html[lang="he"] .about-paragraph,
+        html[lang="he"] .contact-info,
+        html[lang="he"] [data-i18n^="about."],
+        html[lang="he"] h1,
+        html[lang="he"] .header h1,
+        html[lang="he"] .fixed-header h1,
+        html[lang="he"] h2,
+        html[lang="he"] .title {
+            direction: rtl;
+            text-align: right;
+        }
+        
+        /* Изменение порядка элементов для иврита - фото слева на десктопе */
+        html[lang="he"] .about-content {
+            flex-direction: row-reverse;
+        }
     </style>
 </head>
 <body>
@@ -249,7 +267,7 @@
 
     <div class="container">
         <div class="header">
-            <h1 data-i18n="about.title">О проекте</h1>
+            <h1 class="title" data-i18n="about.title">О проекте</h1>
         </div>
         
         <div class="content">

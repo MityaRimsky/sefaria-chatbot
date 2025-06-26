@@ -308,6 +308,15 @@
             filter: none !important;
         }
         
+        /* Стили для полей ввода на иврите */
+        html[lang="he"] .form-input,
+        html[lang="he"] input[type="email"],
+        html[lang="he"] input[type="password"],
+        html[lang="he"] input[type="text"] {
+            direction: rtl;
+            text-align: right;
+        }
+        
         /* Стили для модального окна */
         .modal {
             display: none;

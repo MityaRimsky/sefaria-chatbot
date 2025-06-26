@@ -46,13 +46,13 @@
         .header {
             display: flex;
             align-items: center;
-            margin-bottom: 2rem;
-            justify-content: space-between;
+            margin-bottom: 30px;
         }
         
-        .header h1 {
+        .title {
             font-size: 1.8rem;
             font-weight: 600;
+            flex: 1;
         }
         
         .back-button {
@@ -203,6 +203,23 @@
             forced-color-adjust: none;
             filter: none !important;
         }
+        
+        /* Стили для текста на иврите */
+        html[lang="he"] .content p,
+        html[lang="he"] .content h2,
+        html[lang="he"] .content h3,
+        html[lang="he"] .content ul,
+        html[lang="he"] .content li,
+        html[lang="he"] [data-i18n^="privacy."],
+        html[lang="he"] h1,
+        html[lang="he"] .header h1,
+        html[lang="he"] .fixed-header h1,
+        html[lang="he"] .fixed-header span,
+        html[lang="he"] .header-container span,
+        html[lang="he"] .title {
+            direction: rtl;
+            text-align: right;
+        }
     </style>
 </head>
 <body>
@@ -229,7 +246,7 @@
 
     <div class="container">
         <div class="header">
-            <h1 data-i18n="privacy.title">Политика конфиденциальности</h1>
+            <h1 class="title" data-i18n="privacy.title">Политика конфиденциальности</h1>
         </div>
         
         <div class="content">
