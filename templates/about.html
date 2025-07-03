@@ -225,20 +225,20 @@
         }
         
         /* Стили для текста на иврите */
-        html[lang="he"] .about-paragraph,
-        html[lang="he"] .contact-info,
-        html[lang="he"] [data-i18n^="about."],
-        html[lang="he"] h1,
-        html[lang="he"] .header h1,
-        html[lang="he"] .fixed-header h1,
-        html[lang="he"] h2,
-        html[lang="he"] .title {
+        html[data-lang="he"] .about-paragraph,
+        html[data-lang="he"] .contact-info,
+        html[data-lang="he"] [data-i18n^="about."],
+        html[data-lang="he"] h1,
+        html[data-lang="he"] .header h1,
+        html[data-lang="he"] .fixed-header h1,
+        html[data-lang="he"] h2,
+        html[data-lang="he"] .title {
             direction: rtl;
             text-align: right;
         }
         
         /* Изменение порядка элементов для иврита - фото слева на десктопе */
-        html[lang="he"] .about-content {
+        html[data-lang="he"] .about-content {
             flex-direction: row-reverse;
         }
     </style>

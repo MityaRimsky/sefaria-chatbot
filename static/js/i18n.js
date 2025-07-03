@@ -74,8 +74,12 @@ function updatePageTexts() {
     console.log('Обновление текстов на странице, текущий язык:', i18next.language);
     
     try {
-        // Устанавливаем атрибут lang для HTML-элемента
-        document.documentElement.lang = i18next.language;
+        // Устанавливаем только data-lang, оставляем lang="ru" неизменным для Safari
+        if (i18next.language === 'ru') {
+            document.documentElement.removeAttribute('data-lang');
+        } else {
+            document.documentElement.setAttribute('data-lang', i18next.language);
+        }
         // Обновляем все элементы с атрибутом data-i18n
         document.querySelectorAll('[data-i18n]').forEach(element => {
             const key = element.getAttribute('data-i18n');

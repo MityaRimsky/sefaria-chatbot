@@ -309,12 +309,20 @@
         }
         
         /* Стили для полей ввода на иврите */
-        html[lang="he"] .form-input,
-        html[lang="he"] input[type="email"],
-        html[lang="he"] input[type="password"],
-        html[lang="he"] input[type="text"] {
+        html[data-lang="he"] .form-input,
+        html[data-lang="he"] input[type="email"],
+        html[data-lang="he"] input[type="password"],
+        html[data-lang="he"] input[type="text"] {
             direction: rtl;
             text-align: right;
+        }
+        
+        /* Стиль для ссылки "забыли пароль?" на иврите */
+        html[data-lang="he"] .forgot-password a {
+            direction: rtl;
+            text-align: right;
+            display: block;
+            width: 100%;
         }
         
         /* Стили для модального окна */
